@@ -81,3 +81,19 @@ Then open:
 - `http://localhost:3000/book`
 - `http://localhost:3000/my-spot`
 - `http://localhost:3000/admin`
+
+## 7) Quick test checklist (manual QA)
+
+Use this checklist for a fast validation pass:
+
+- [ ] Open `http://localhost:3000/book` and confirm slots load.
+- [ ] Select an open slot and submit a valid booking.
+- [ ] Verify success screen shows confirmation code and queue position.
+- [ ] Copy the confirmation code, go to `/my-spot`, and confirm lookup works.
+- [ ] Cancel the booking from `/my-spot` and verify status updates.
+- [ ] Try booking a full slot and confirm waitlist path works.
+- [ ] Open `/admin` and verify bookings list reflects latest actions.
+- [ ] Create a new slot in admin and confirm it appears on `/book`.
+- [ ] Toggle a slot open/closed in admin and verify UI state changes.
+
+Expected result: booking lifecycle and admin controls work end-to-end without API errors.
