@@ -11,29 +11,50 @@ import type { TimeSlot, Booking, ActivityConfig, QueueStats } from '@/types';
 
 const today = new Date().toISOString().split('T')[0];
 
+function seedSlotId(date: string, time: string): string {
+  return `slot:${date}:${time.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
 const seedSlots: TimeSlot[] = [
-  { id: uuidv4(), time: '9:00 AM',  date: today, capacity: 12, bookedCount: 4,  isOpen: true, durationMinutes: 30 },
-  { id: uuidv4(), time: '9:30 AM',  date: today, capacity: 12, bookedCount: 9,  isOpen: true, durationMinutes: 30 },
-  { id: uuidv4(), time: '10:00 AM', date: today, capacity: 12, bookedCount: 12, isOpen: true, durationMinutes: 30 },
-  { id: uuidv4(), time: '10:30 AM', date: today, capacity: 12, bookedCount: 2,  isOpen: true, durationMinutes: 30 },
-  { id: uuidv4(), time: '11:00 AM', date: today, capacity: 12, bookedCount: 7,  isOpen: true, durationMinutes: 30 },
-  { id: uuidv4(), time: '11:30 AM', date: today, capacity: 12, bookedCount: 0,  isOpen: true, durationMinutes: 30 },
+  { id: seedSlotId(today, '9:00 AM'),  time: '9:00 AM',  date: today, capacity: 12, bookedCount: 4,  isOpen: true, durationMinutes: 30 },
+  { id: seedSlotId(today, '9:30 AM'),  time: '9:30 AM',  date: today, capacity: 12, bookedCount: 9,  isOpen: true, durationMinutes: 30 },
+  { id: seedSlotId(today, '10:00 AM'), time: '10:00 AM', date: today, capacity: 12, bookedCount: 12, isOpen: true, durationMinutes: 30 },
+  { id: seedSlotId(today, '10:30 AM'), time: '10:30 AM', date: today, capacity: 12, bookedCount: 2,  isOpen: true, durationMinutes: 30 },
+  { id: seedSlotId(today, '11:00 AM'), time: '11:00 AM', date: today, capacity: 12, bookedCount: 7,  isOpen: true, durationMinutes: 30 },
+  { id: seedSlotId(today, '11:30 AM'), time: '11:30 AM', date: today, capacity: 12, bookedCount: 0,  isOpen: true, durationMinutes: 30 },
 ];
 
 // ── Mutable state ────────────────────────────────────────────────────────────
 
-let slots: TimeSlot[] = [...seedSlots];
-let bookings: Booking[] = [];
+interface StoreState {
+  slots: TimeSlot[];
+  bookings: Booking[];
+  config: ActivityConfig;
+}
 
-let config: ActivityConfig = {
-  name: 'General Activity',
-  description: 'Reserve your spot for the activity.',
-  defaultCapacity: 12,
-  defaultDurationMinutes: 30,
-  waitlistEnabled: true,
-  maxPartySize: 6,
-  requiresApproval: false,
+type GlobalStore = typeof globalThis & {
+  __queueflowStore__?: StoreState;
 };
+
+const globalStore = globalThis as GlobalStore;
+
+if (!globalStore.__queueflowStore__) {
+  globalStore.__queueflowStore__ = {
+    slots: [...seedSlots],
+    bookings: [],
+    config: {
+      name: 'General Activity',
+      description: 'Reserve your spot for the activity.',
+      defaultCapacity: 12,
+      defaultDurationMinutes: 30,
+      waitlistEnabled: true,
+      maxPartySize: 6,
+      requiresApproval: false,
+    },
+  };
+}
+
+const store = globalStore.__queueflowStore__;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -48,11 +69,11 @@ function availableSpots(slot: TimeSlot): number {
 // ── Slot API ─────────────────────────────────────────────────────────────────
 
 export function getSlots(date?: string): TimeSlot[] {
-  return date ? slots.filter(s => s.date === date) : slots;
+  return date ? store.slots.filter(s => s.date === date) : store.slots;
 }
 
 export function getSlotById(id: string): TimeSlot | undefined {
-  return slots.find(s => s.id === id);
+  return store.slots.find(s => s.id === id);
 }
 
 export function createSlot(time: string, date: string, capacity?: number, durationMinutes?: number): TimeSlot {
@@ -60,40 +81,40 @@ export function createSlot(time: string, date: string, capacity?: number, durati
     id: uuidv4(),
     time,
     date,
-    capacity: capacity ?? config.defaultCapacity,
+    capacity: capacity ?? store.config.defaultCapacity,
     bookedCount: 0,
     isOpen: true,
-    durationMinutes: durationMinutes ?? config.defaultDurationMinutes,
+    durationMinutes: durationMinutes ?? store.config.defaultDurationMinutes,
   };
-  slots.push(slot);
+  store.slots.push(slot);
   return slot;
 }
 
 export function updateSlot(id: string, updates: Partial<TimeSlot>): TimeSlot | null {
-  const idx = slots.findIndex(s => s.id === id);
+  const idx = store.slots.findIndex(s => s.id === id);
   if (idx === -1) return null;
-  slots[idx] = { ...slots[idx], ...updates };
-  return slots[idx];
+  store.slots[idx] = { ...store.slots[idx], ...updates };
+  return store.slots[idx];
 }
 
 export function deleteSlot(id: string): boolean {
-  const before = slots.length;
-  slots = slots.filter(s => s.id !== id);
-  return slots.length < before;
+  const before = store.slots.length;
+  store.slots = store.slots.filter(s => s.id !== id);
+  return store.slots.length < before;
 }
 
 // ── Booking API ──────────────────────────────────────────────────────────────
 
 export function getBookings(slotId?: string): Booking[] {
-  return slotId ? bookings.filter(b => b.slotId === slotId) : bookings;
+  return slotId ? store.bookings.filter(b => b.slotId === slotId) : store.bookings;
 }
 
 export function getBookingByCode(code: string): Booking | undefined {
-  return bookings.find(b => b.confirmationCode === code);
+  return store.bookings.find(b => b.confirmationCode === code);
 }
 
 export function getBookingById(id: string): Booking | undefined {
-  return bookings.find(b => b.id === id);
+  return store.bookings.find(b => b.id === id);
 }
 
 export interface CreateBookingOptions {
@@ -118,7 +139,7 @@ export function createBooking(opts: CreateBookingOptions): { booking: Booking; s
     return { error: `Only ${avail} spots remaining in this slot` };
   }
 
-  if (isWaiting && !config.waitlistEnabled) {
+  if (isWaiting && !store.config.waitlistEnabled) {
     return { error: 'Waitlist is not enabled for this activity' };
   }
 
@@ -145,7 +166,7 @@ export function createBooking(opts: CreateBookingOptions): { booking: Booking; s
     notes: opts.notes,
   };
 
-  bookings.push(booking);
+  store.bookings.push(booking);
 
   if (!isWaiting) {
     updateSlot(opts.slotId, { bookedCount: slot.bookedCount + opts.partySize });
@@ -156,11 +177,11 @@ export function createBooking(opts: CreateBookingOptions): { booking: Booking; s
 }
 
 export function cancelBooking(id: string): { booking: Booking; promoted?: Booking } | { error: string } {
-  const idx = bookings.findIndex(b => b.id === id);
+  const idx = store.bookings.findIndex(b => b.id === id);
   if (idx === -1) return { error: 'Booking not found' };
 
-  const booking = bookings[idx];
-  bookings[idx] = { ...booking, status: 'cancelled' };
+  const booking = store.bookings[idx];
+  store.bookings[idx] = { ...booking, status: 'cancelled' };
 
   // Release capacity and promote first waitlisted person if any
   if (booking.status === 'confirmed') {
@@ -168,48 +189,48 @@ export function cancelBooking(id: string): { booking: Booking; promoted?: Bookin
     if (slot) {
       updateSlot(booking.slotId, { bookedCount: Math.max(0, slot.bookedCount - booking.partySize) });
     }
-    const nextWaiting = bookings.find(b => b.slotId === booking.slotId && b.status === 'waiting');
+    const nextWaiting = store.bookings.find(b => b.slotId === booking.slotId && b.status === 'waiting');
     if (nextWaiting && slot && availableSpots(slot) >= nextWaiting.partySize) {
-      const wIdx = bookings.findIndex(b => b.id === nextWaiting.id);
-      bookings[wIdx] = { ...nextWaiting, status: 'confirmed', waitlistPosition: undefined };
+      const wIdx = store.bookings.findIndex(b => b.id === nextWaiting.id);
+      store.bookings[wIdx] = { ...nextWaiting, status: 'confirmed', waitlistPosition: undefined };
       updateSlot(booking.slotId, { bookedCount: (getSlotById(booking.slotId)?.bookedCount ?? 0) + nextWaiting.partySize });
-      return { booking: bookings[idx], promoted: bookings[wIdx] };
+      return { booking: store.bookings[idx], promoted: store.bookings[wIdx] };
     }
   }
 
-  return { booking: bookings[idx] };
+  return { booking: store.bookings[idx] };
 }
 
 export function removeBooking(id: string): boolean {
-  const before = bookings.length;
-  const b = bookings.find(x => x.id === id);
+  const before = store.bookings.length;
+  const b = store.bookings.find(x => x.id === id);
   if (b?.status === 'confirmed') {
     const slot = getSlotById(b.slotId);
     if (slot) updateSlot(b.slotId, { bookedCount: Math.max(0, slot.bookedCount - b.partySize) });
   }
-  bookings = bookings.filter(b => b.id !== id);
-  return bookings.length < before;
+  store.bookings = store.bookings.filter(b => b.id !== id);
+  return store.bookings.length < before;
 }
 
 // ── Config API ───────────────────────────────────────────────────────────────
 
 export function getConfig(): ActivityConfig {
-  return { ...config };
+  return { ...store.config };
 }
 
 export function updateConfig(updates: Partial<ActivityConfig>): ActivityConfig {
-  config = { ...config, ...updates };
-  return config;
+  store.config = { ...store.config, ...updates };
+  return store.config;
 }
 
 // ── Stats ────────────────────────────────────────────────────────────────────
 
 export function getStats(): QueueStats {
   return {
-    totalConfirmed: bookings.filter(b => b.status === 'confirmed').length,
-    totalWaiting: bookings.filter(b => b.status === 'waiting').length,
-    totalCancelled: bookings.filter(b => b.status === 'cancelled').length,
-    openSlots: slots.filter(s => s.isOpen && availableSpots(s) > 0).length,
-    fullSlots: slots.filter(s => s.isOpen && availableSpots(s) === 0).length,
+    totalConfirmed: store.bookings.filter(b => b.status === 'confirmed').length,
+    totalWaiting: store.bookings.filter(b => b.status === 'waiting').length,
+    totalCancelled: store.bookings.filter(b => b.status === 'cancelled').length,
+    openSlots: store.slots.filter(s => s.isOpen && availableSpots(s) > 0).length,
+    fullSlots: store.slots.filter(s => s.isOpen && availableSpots(s) === 0).length,
   };
 }

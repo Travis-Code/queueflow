@@ -2,6 +2,10 @@
 
 A modular queue & booking application built with Next.js 14, React, and TypeScript.
 
+## Documentation
+
+- User guide: [`USER_GUIDE.md`](./USER_GUIDE.md)
+
 ## Features
 
 - **Book a slot** — browse time slots, select one, fill in details, confirm or join waitlist
