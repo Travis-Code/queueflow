@@ -1,6 +1,76 @@
+
 # QueueFlow
 
-A modular queue & booking application built with Next.js 14, React, and TypeScript.
+QueueFlow is a user-friendly web app for managing bookings, queues, and waitlists for any activity or event. It’s designed for both customers and admins, and works great for things like classes, appointments, or limited-capacity events.
+
+**Built with:** Next.js 14, React, TypeScript, and (optionally) Postgres.
+
+---
+
+## What does QueueFlow do?
+
+- Lets users reserve a spot in a time slot, or join a waitlist if full
+- Shows users their queue position and booking details
+- Lets admins manage slots, bookings, and activity settings in real time
+- Automatically promotes waitlisted users when a spot opens up
+
+---
+
+## How it works (for users)
+
+1. **Book a slot:** Pick a time, fill in your info, and confirm your booking. If the slot is full, you can join the waitlist.
+2. **Check your spot:** Use your confirmation code to see your queue position or cancel if needed.
+3. **Admins:** Use the admin panel to add/remove slots, see live bookings, and adjust settings.
+
+---
+
+## Project structure & components (explained)
+
+Here’s what each folder/file does, in plain English:
+
+```
+src/
+├── app/                  # All the main pages and API endpoints
+│   ├── api/              # Server-side routes for data (slots, bookings, waitlist)
+│   │   ├── slots/        # Endpoints for slot CRUD (create, read, update, delete)
+│   │   ├── bookings/     # Endpoints for booking CRUD and status
+│   │   └── waitlist/     # Endpoint for checking waitlist/booking by code
+│   ├── book/             # The main booking page (user flow)
+│   ├── my-spot/          # Lets users check or cancel their spot
+│   └── admin/            # Admin dashboard for managing everything
+├── components/           # All the building blocks for the UI
+│   ├── booking/          # Booking-related UI (slot grid, form, queue position)
+│   │   ├── SlotGrid.tsx      # Shows all available time slots
+│   │   ├── BookingForm.tsx   # The form users fill out to book or waitlist
+│   │   └── QueuePosition.tsx # Shows user’s queue/waitlist position
+│   ├── admin/            # Admin-only UI (queue list, slot controls)
+│   │   ├── AdminQueue.tsx    # Live list of all bookings
+│   │   └── AdminSlots.tsx    # Add, open/close, or delete slots
+│   └── ui/               # Shared UI (navigation bar, etc)
+│       └── Nav.tsx           # The top navigation bar
+├── lib/                  # Logic and data access
+│   ├── store.ts          # The main data layer (in-memory or Postgres)
+│   └── db.ts             # (If using Postgres) Database connection and helpers
+├── types/                # TypeScript types shared across the app
+│   └── index.ts
+└── migrations/           # (If using Postgres) SQL files for database setup
+```
+
+---
+
+## Quick start for users
+
+1. Install dependencies:
+  ```bash
+  npm install
+  ```
+2. Start the app:
+  ```bash
+  npm run dev
+  ```
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
 
 ## Documentation
 

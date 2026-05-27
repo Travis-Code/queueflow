@@ -6,6 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import type { TimeSlot, Booking, ActivityConfig, QueueStats } from '@/types';
+import { query } from './db';
 
 // ── Seed data ───────────────────────────────────────────────────────────────
 
@@ -68,8 +69,20 @@ function availableSpots(slot: TimeSlot): number {
 
 // ── Slot API ─────────────────────────────────────────────────────────────────
 
-export function getSlots(date?: string): TimeSlot[] {
-  return date ? store.slots.filter(s => s.date === date) : store.slots;
+export async function getSlots(date?: string): Promise<TimeSlot[]> {
+  try {
+    let sql = 'SELECT * FROM slots';
+    const params: any[] = [];
+    if (date) {
+      sql += ' WHERE date = $1';
+      params.push(date);
+    }
+    const { rows } = await query<TimeSlot>(sql, params);
+    return rows;
+  } catch (e) {
+    // fallback to in-memory if DB is not available
+    return date ? store.slots.filter(s => s.date === date) : store.slots;
+  }
 }
 
 export function getSlotById(id: string): TimeSlot | undefined {
