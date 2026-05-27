@@ -1,3 +1,15 @@
+
+/**
+ * QueuePosition.tsx
+ *
+ * Shows the user their current position in the queue or waitlist.
+ *
+ * - Displays confirmation code, status (confirmed/waiting), and position.
+ * - Shows a progress bar and estimated wait time.
+ * - Lets users cancel their booking.
+ *
+ * User sees: “You’re #2 in the queue”, with a cancel button and booking details.
+ */
 'use client';
 // src/components/booking/QueuePosition.tsx
 
@@ -10,13 +22,16 @@ interface QueuePositionProps {
 }
 
 export function QueuePosition({ booking, onCancel }: QueuePositionProps) {
+  // Determine if user is on waitlist or confirmed
   const isWaiting = booking.status === 'waiting';
+  // Get their position in queue or waitlist
   const position = isWaiting ? booking.waitlistPosition ?? 1 : booking.queuePosition;
+  // Calculate progress bar percent
   const progressPct = isWaiting ? 15 : Math.max(10, 100 - position * 12);
 
   return (
     <div className="space-y-4">
-      {/* Position card */}
+      {/* Position card: shows queue or waitlist position and status */}
       <div className="bg-white rounded-xl border-2 border-teal-500 p-5">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 rounded-full bg-teal-600 flex flex-col items-center justify-center text-white flex-shrink-0">
@@ -44,7 +59,7 @@ export function QueuePosition({ booking, onCancel }: QueuePositionProps) {
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Progress bar visualizes how close the user is to the front */}
         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
           <div
             className="h-full bg-teal-500 rounded-full transition-all duration-700"
@@ -60,7 +75,7 @@ export function QueuePosition({ booking, onCancel }: QueuePositionProps) {
         </p>
       </div>
 
-      {/* Booking details */}
+      {/* Booking details card */}
       <div className="bg-white rounded-xl border border-gray-100 p-5">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Booking details</h3>
         <dl className="space-y-2">
@@ -79,6 +94,7 @@ export function QueuePosition({ booking, onCancel }: QueuePositionProps) {
         </dl>
       </div>
 
+      {/* Cancel button for user to cancel their booking */}
       <button
         onClick={onCancel}
         className="w-full py-2.5 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors"

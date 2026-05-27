@@ -1,3 +1,15 @@
+
+/**
+ * Nav.tsx
+ *
+ * The top navigation bar for the whole app.
+ *
+ * - Provides links to “Book”, “My spot”, and “Admin” pages.
+ * - Shows the app name/logo.
+ * - Highlights the current page.
+ *
+ * User sees: A simple, always-visible menu at the top of every page.
+ */
 'use client';
 // src/components/ui/Nav.tsx
 
@@ -16,6 +28,7 @@ export function Nav() {
   return (
     <nav className="border-b border-gray-100 bg-white">
       <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+        {/* App logo and name */}
         <Link href="/" className="flex items-center gap-2">
           <div className="w-7 h-7 bg-teal-600 rounded-md flex items-center justify-center">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -26,6 +39,7 @@ export function Nav() {
           </div>
           <span className="font-medium text-gray-800 text-sm">QueueFlow</span>
         </Link>
+        {/* Navigation links */}
         <div className="flex gap-1">
           {links.map(({ href, label }) => (
             <Link

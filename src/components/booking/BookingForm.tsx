@@ -1,3 +1,16 @@
+
+/**
+ * BookingForm.tsx
+ *
+ * The form users fill out to book a slot or join the waitlist.
+ *
+ * - Collects name, email, party size, and optional notes.
+ * - Validates required fields and selected slot.
+ * - Submits booking or waitlist request to the backend.
+ * - Shows errors or success messages.
+ *
+ * User sees: Input fields and “Confirm booking” / “Join waitlist” buttons.
+ */
 'use client';
 // src/components/booking/BookingForm.tsx
 
@@ -19,11 +32,14 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
   const avail = selectedSlot ? selectedSlot.capacity - selectedSlot.bookedCount : 0;
   const isFull = selectedSlot ? avail <= 0 : false;
 
+  // Handles form submission for booking or waitlist
   async function submit(joinWaitlist: boolean) {
+    // Validate slot and required fields
     if (!selectedSlot) { setError('Please select a time slot first.'); return; }
     if (!form.firstName || !form.email) { setError('Name and email are required.'); return; }
     setError(''); setLoading(true);
     try {
+      // Send booking request to API
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,6 +47,7 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? 'Something went wrong'); return; }
+      // Call parent handler on success
       onSuccess(data.booking, data.slot);
     } catch {
       setError('Network error — please try again.');
@@ -43,10 +60,12 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
     <div className="bg-white rounded-xl border border-gray-100 p-5">
       <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">Your details</h3>
 
+      {/* Show error messages if any */}
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-100 text-red-700 text-sm">{error}</div>
       )}
 
+      {/* Name fields */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
           <label className="text-xs text-gray-500 block mb-1">First name *</label>
@@ -68,6 +87,7 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
         </div>
       </div>
 
+      {/* Email field */}
       <div className="mb-3">
         <label className="text-xs text-gray-500 block mb-1">Email *</label>
         <input
@@ -79,6 +99,7 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
         />
       </div>
 
+      {/* Party size dropdown */}
       <div className="mb-3">
         <label className="text-xs text-gray-500 block mb-1">Party size</label>
         <select
@@ -90,6 +111,7 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
         </select>
       </div>
 
+      {/* Optional notes */}
       <div className="mb-4">
         <label className="text-xs text-gray-500 block mb-1">Notes (optional)</label>
         <textarea
@@ -101,6 +123,7 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
         />
       </div>
 
+      {/* Booking and waitlist buttons */}
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => submit(false)}
@@ -124,6 +147,7 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
         </button>
       </div>
 
+      {/* Show waitlist info if slot is full */}
       {isFull && selectedSlot && (
         <p className="text-xs text-amber-600 mt-2">This slot is full — you can join the waitlist.</p>
       )}

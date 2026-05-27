@@ -1,3 +1,15 @@
+
+/**
+ * AdminSlots.tsx
+ *
+ * Lets admins manage all time slots.
+ *
+ * - Add new slots (time, date, capacity).
+ * - Open/close or delete slots.
+ * - See how many are booked or available, with a progress bar.
+ *
+ * Admin sees: Controls for creating, editing, or removing slots, and a live list of all slots.
+ */
 'use client';
 // src/components/admin/AdminSlots.tsx
 
@@ -11,6 +23,7 @@ export function AdminSlots() {
   const [newTime, setNewTime] = useState('');
   const today = new Date().toISOString().split('T')[0];
 
+  // Loads all slots from the API
   async function load() {
     setLoading(true);
     const res = await fetch('/api/slots');
@@ -20,6 +33,7 @@ export function AdminSlots() {
 
   useEffect(() => { load(); }, []);
 
+  // Adds a new slot for today
   async function addSlot() {
     if (!newTime) return;
     await fetch('/api/slots', {
@@ -30,6 +44,7 @@ export function AdminSlots() {
     setNewTime(''); setAdding(false); load();
   }
 
+  // Toggles a slot open or closed
   async function toggleOpen(slot: TimeSlot) {
     await fetch(`/api/slots/${slot.id}`, {
       method: 'PATCH',
@@ -39,6 +54,7 @@ export function AdminSlots() {
     load();
   }
 
+  // Deletes a slot
   async function deleteSlot(id: string) {
     await fetch(`/api/slots/${id}`, { method: 'DELETE' });
     load();
@@ -46,6 +62,7 @@ export function AdminSlots() {
 
   return (
     <div>
+      {/* Header and add slot button */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Time slots</h3>
         <button
@@ -56,6 +73,7 @@ export function AdminSlots() {
         </button>
       </div>
 
+      {/* Add slot form */}
       {adding && (
         <div className="flex gap-2 mb-4">
           <input
@@ -69,11 +87,13 @@ export function AdminSlots() {
         </div>
       )}
 
+      {/* List of all slots with controls */}
       {loading ? (
         <div className="text-center py-10 text-gray-400 text-sm">Loading…</div>
       ) : (
         <div className="space-y-2">
           {slots.map(slot => {
+            // Calculate percent booked and choose bar color
             const pct = Math.round((slot.bookedCount / slot.capacity) * 100);
             const barColor = pct >= 100 ? 'bg-red-400' : pct >= 70 ? 'bg-amber-400' : 'bg-teal-500';
             return (
@@ -81,10 +101,12 @@ export function AdminSlots() {
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-800">{slot.time}</div>
                   <div className="text-xs text-gray-500 mb-1.5">{slot.bookedCount}/{slot.capacity} booked</div>
+                  {/* Progress bar for slot fill level */}
                   <div className="h-1 bg-gray-100 rounded-full overflow-hidden w-24">
                     <div className={`h-full ${barColor} rounded-full`} style={{ width: `${pct}%` }} />
                   </div>
                 </div>
+                {/* Open/close toggle */}
                 <button
                   onClick={() => toggleOpen(slot)}
                   className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
@@ -93,6 +115,7 @@ export function AdminSlots() {
                 >
                   {slot.isOpen ? 'Open' : 'Closed'}
                 </button>
+                {/* Delete slot button */}
                 <button
                   onClick={() => deleteSlot(slot.id)}
                   className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
