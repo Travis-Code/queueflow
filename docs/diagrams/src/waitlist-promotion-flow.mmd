@@ -1,0 +1,9 @@
+flowchart TD
+  M[User cancels confirmed booking] --> CAPI[PATCH/DELETE booking endpoint]
+  CAPI --> S1[src/lib/store.ts cancel logic]
+  S1 --> F{Waitlist entries exist for slot?}
+  F -->|No| END1[Slot availability updated]
+  F -->|Yes| P[Promote next waiting booking]
+  P --> UPD[Set status waiting -> confirmed]
+  UPD --> Q[Recalculate queue and waitlist positions]
+  Q --> END2[Updated data returned to UI]

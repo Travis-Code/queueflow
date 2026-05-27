@@ -74,7 +74,12 @@ src/
 
 ## Documentation
 
-- User guide: [`USER_GUIDE.md`](./USER_GUIDE.md)
+- Docs index: [`docs/README.md`](./docs/README.md)
+- User guide: [`docs/guides/USER_GUIDE.md`](./docs/guides/USER_GUIDE.md)
+- Functional spec: [`docs/specs/FUNCTIONAL_DOC.md`](./docs/specs/FUNCTIONAL_DOC.md)
+- Technical spec: [`docs/specs/TECHNICAL_DOC.md`](./docs/specs/TECHNICAL_DOC.md)
+- DB setup: [`docs/setup/README_DB.md`](./docs/setup/README_DB.md)
+- Diagram exports (PNG): [`docs/diagrams`](./docs/diagrams)
 
 ## Features
 

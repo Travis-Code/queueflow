@@ -1,0 +1,11 @@
+flowchart TD
+  A[Admin on /admin] --> AS[AdminSlots action]
+  AS --> ACT{Action type}
+  ACT -->|Create| P1[POST /api/slots]
+  ACT -->|Open/Close| P2[PATCH /api/slots/:id]
+  ACT -->|Delete| P3[DELETE /api/slots/:id]
+  P1 --> S[src/lib/store.ts]
+  P2 --> S
+  P3 --> S
+  S --> DB[(In-memory or Postgres)]
+  DB --> AQ[AdminQueue refresh]

@@ -1,0 +1,10 @@
+flowchart TD
+  U[User on /book] --> SG[Select slot in SlotGrid]
+  SG --> BF[Submit BookingForm]
+  BF --> API[POST /api/bookings]
+  API --> V{Slot open and capacity available?}
+  V -->|Yes| C[Create confirmed booking]
+  V -->|No| WL[Create waiting booking]
+  C --> R[Return confirmation code and queue position]
+  WL --> R
+  R --> UI[Render QueuePosition]

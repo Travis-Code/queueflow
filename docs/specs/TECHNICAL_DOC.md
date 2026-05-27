@@ -51,10 +51,62 @@ Types are defined in `src/types/index.ts`.
 3. **Data Layer:** Logic in `src/lib/store.ts` (in-memory or Postgres) handles slot capacity, waitlist, and booking creation.
 4. **Response:** Returns booking details and queue position.
 
+```mermaid
+flowchart TD
+	U[User on /book] --> SG[Select slot in SlotGrid]
+	SG --> BF[Submit BookingForm]
+	BF --> API[POST /api/bookings]
+	API --> V{Slot open and capacity available?}
+	V -->|Yes| C[Create confirmed booking]
+	V -->|No| WL[Create waiting booking]
+	C --> R[Return confirmation code and queue position]
+	WL --> R
+	R --> UI[Render QueuePosition]
+```
+
+![Booking Flow PNG](../diagrams/booking-flow.png)
+
 ### Admin Flow
 
 - **Slot Management:** Admin actions (add, open/close, delete) call `src/lib/store.ts` methods via API routes.
 - **Live Updates:** Admin UI fetches latest bookings/slots via API.
+
+```mermaid
+flowchart TD
+	A[Admin on /admin] --> AS[AdminSlots action]
+	AS --> ACT{Action type}
+	ACT -->|Create| P1[POST /api/slots]
+	ACT -->|Open/Close| P2[PATCH /api/slots/:id]
+	ACT -->|Delete| P3[DELETE /api/slots/:id]
+	P1 --> S[src/lib/store.ts]
+	P2 --> S
+	P3 --> S
+	S --> DB[(In-memory or Postgres)]
+	DB --> AQ[AdminQueue refresh]
+```
+
+![Admin Flow PNG](../diagrams/admin-flow.png)
+
+### Waitlist Promotion Flow
+
+```mermaid
+flowchart TD
+	M[User cancels confirmed booking] --> CAPI[PATCH/DELETE booking endpoint]
+	CAPI --> S1[src/lib/store.ts cancel logic]
+	S1 --> F{Waitlist entries exist for slot?}
+	F -->|No| END1[Slot availability updated]
+	F -->|Yes| P[Promote next waiting booking]
+	P --> UPD[Set status waiting -> confirmed]
+	UPD --> Q[Recalculate queue and waitlist positions]
+	Q --> END2[Updated data returned to UI]
+```
+
+![Waitlist Promotion Flow PNG](../diagrams/waitlist-promotion-flow.png)
+
+### Diagram Source and Exports
+
+- Mermaid source files: `../diagrams/src/*.mmd`
+- PNG exports: `../diagrams/*.png`
 
 ---
 
@@ -100,7 +152,7 @@ All major components are documented with header and inline comments for onboardi
 
 ## 10. Testing & Validation
 
-- **Manual QA:** See `USER_GUIDE.md` for a checklist.
+- **Manual QA:** See `../guides/USER_GUIDE.md` for a checklist.
 - **Automated Tests:** Not yet implemented; can be added using Jest, React Testing Library, or Cypress.
 
 ---
@@ -121,9 +173,10 @@ All major components are documented with header and inline comments for onboardi
 
 ## 13. Documentation
 
-- **User Guide:** `USER_GUIDE.md`
-- **Functional Spec:** `FUNCTIONAL_DOC.md`
-- **DB Setup:** `README_DB.md`
+- **User Guide:** `../guides/USER_GUIDE.md`
+- **Functional Spec:** `./FUNCTIONAL_DOC.md`
+- **DB Setup:** `../setup/README_DB.md`
+- **Diagram Exports:** `../diagrams/*.png`
 - **Code Comments:** Major components and data logic contain onboarding comments.
 
 ---
