@@ -51,7 +51,8 @@ Go to the **Admin** tab to:
 
 - Make sure a slot is selected.
 - Ensure required fields are filled (`firstName`, `email`).
-- Confirm party size is greater than 0.
+- Confirm email is valid (example: `name@example.com`).
+- Confirm party size is greater than 0 and does not exceed configured max.
 
 ### I do not see recent changes
 

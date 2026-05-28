@@ -49,12 +49,12 @@ QueueFlow is a web application for managing bookings, queues, and waitlists for 
 
 ## Technical Structure
 
-- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS.
-- **Backend:** Next.js API routes, with data stored in-memory or in Postgres (via `pg`).
+- **Frontend:** Next.js 15, React, TypeScript, Tailwind CSS.
+- **Backend:** Next.js API routes, with business logic in services and adapter-based data access.
 - **Key Directories:**
   - `src/app/`: Main pages and API endpoints.
   - `src/components/`: UI components for booking, admin, and navigation.
-  - `src/lib/`: Data access and business logic (`store.ts` for in-memory/DB, `db.ts` for Postgres).
+   - `src/lib/`: Adapters, services, validation, and DB access (`adapters/`, `services/`, `validation.ts`, `db.ts`).
   - `src/types/`: Shared TypeScript types.
   - `migrations/`: SQL files for Postgres schema.
 

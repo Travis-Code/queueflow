@@ -7,6 +7,11 @@ Base URL (local): `http://localhost:3000`
 - All request/response bodies are JSON.
 - IDs are UUIDs or deterministic slot IDs depending on endpoint source.
 - Booking lookup uses confirmation code format like `QF-1234`.
+- Error responses are standardized as:
+
+```json
+{ "error": "message", "code": "ERROR_CODE", "timestamp": "ISO-8601" }
+```
 
 ## `GET /api/slots`
 
@@ -74,7 +79,7 @@ Delete a slot.
 ### Success `200`
 
 ```json
-{ "ok": true }
+{ "success": true }
 ```
 
 ## `GET /api/bookings`
@@ -127,9 +132,8 @@ Create a booking or waitlist entry.
 
 ### Common error responses
 
-- `400`: invalid payload (missing fields, party size <= 0)
-- `404`: slot not found
-- `409`: slot closed/full and waitlist disabled
+- `400`: invalid payload (missing required fields, malformed body)
+- `422`: validation/business rule failures (invalid email, slot not found/closed, waitlist disabled, party-size limits)
 
 ## `PATCH /api/bookings/:id`
 
@@ -143,7 +147,7 @@ Perform booking actions (e.g., cancel).
 
 ### Success `200`
 
-Returns updated booking object.
+Returns cancellation result payload, including updated booking and optional promoted booking.
 
 ## `DELETE /api/bookings/:id`
 
@@ -152,7 +156,7 @@ Admin hard-delete for a booking.
 ### Success `200`
 
 ```json
-{ "ok": true }
+{ "success": true }
 ```
 
 ## `GET /api/waitlist?code=QF-1234`
@@ -166,7 +170,7 @@ Returns booking object including `status`, `queuePosition`, and optional `waitli
 ### Error `404`
 
 ```json
-{ "error": "Not found" }
+{ "error": "Booking not found", "code": "NOT_FOUND", "timestamp": "..." }
 ```
 
 ## Related docs

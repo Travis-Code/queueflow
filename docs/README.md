@@ -14,11 +14,11 @@ This folder contains all product, technical, and setup documentation.
   - `FUNCTIONAL_DOC.md` — Functional behavior and product capabilities.
   - `TECHNICAL_DOC.md` — Architecture, data flow, APIs, and system notes.
 - `setup/`
-  - `LOCAL_DEV.md` — Local development setup for in-memory or Postgres modes.
+  - `LOCAL_DEV.md` — Local development setup for in-memory or Postgres modes, plus smoke checks.
   - `DEPLOYMENT.md` — Production deployment checklist and rollback strategy.
-  - `README_DB.md` — Postgres setup and migration instructions.
+  - `README_DB.md` — Postgres setup, migrations, and adapter integration notes.
 - `testing/`
-  - `TEST_PLAN.md` — Manual smoke tests, regression focus, and automation roadmap.
+  - `TEST_PLAN.md` — Manual smoke tests, API checks, and release verification steps.
 - `diagrams/`
   - `*.png` — Exported chart images for easy viewing.
   - `src/*.mmd` — Mermaid source files used to generate PNGs.

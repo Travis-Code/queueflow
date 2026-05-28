@@ -64,6 +64,14 @@ npm run dev
 3. Use returned confirmation code in `/my-spot`.
 4. Open `/admin` and verify booking appears.
 
+Or run automated smoke:
+
+```bash
+npm run test:smoke
+```
+
+The smoke script starts a temporary dev server on port `3000` by default.
+
 ## Troubleshooting
 
 ### `Slot not found` or booking failures

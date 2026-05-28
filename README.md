@@ -3,7 +3,7 @@
 
 QueueFlow is a user-friendly web app for managing bookings, queues, and waitlists for any activity or event. It’s designed for both customers and admins, and works great for things like classes, appointments, or limited-capacity events.
 
-**Built with:** Next.js 14, React, TypeScript, and (optionally) Postgres.
+**Built with:** Next.js 15, React, TypeScript, and (optionally) Postgres.
 
 ## Latest update (May 2026)
 
@@ -57,9 +57,11 @@ src/
 │   │   └── AdminSlots.tsx    # Add, open/close, or delete slots
 │   └── ui/               # Shared UI (navigation bar, etc)
 │       └── Nav.tsx           # The top navigation bar
-├── lib/                  # Logic and data access
-│   ├── store.ts          # The main data layer (in-memory or Postgres)
-│   └── db.ts             # (If using Postgres) Database connection and helpers
+├── lib/                  # Logic, services, adapters, and DB access
+│   ├── adapters/         # Data layer abstraction (in-memory now, DB adapter-ready)
+│   ├── services/         # Booking/slot/config/stats business logic
+│   ├── validation.ts     # Shared API request validation helpers
+│   └── db.ts             # Postgres connection and query helper
 ├── types/                # TypeScript types shared across the app
 │   └── index.ts
 └── migrations/           # (If using Postgres) SQL files for database setup
@@ -129,26 +131,19 @@ src/
 │   └── ui/
 │       └── Nav.tsx         # Top navigation
 ├── lib/
-│   └── store.ts            # In-memory data layer (swap for DB here)
+│   ├── adapters/           # StoreAdapter + in-memory implementation
+│   ├── services/           # Domain/business logic
+│   └── validation.ts       # Request validation + standardized API errors
 └── types/
     └── index.ts            # Shared TypeScript types
 ```
 
 ## Swapping in a real database
 
-All data access is isolated to `src/lib/store.ts`. To use Postgres (via Prisma), replace each function with a Prisma query:
+Data access now goes through `StoreAdapter` (`src/lib/adapters/types.ts`) and is resolved via `src/lib/adapters/index.ts`.
 
-```ts
-// Before (in-memory)
-export function getSlots() { return slots; }
-
-// After (Prisma)
-export async function getSlots() {
-  return prisma.slot.findMany();
-}
-```
-
-Update the API routes to `await` the async store functions and you're done.
+Current default is `InMemoryAdapter` (`src/lib/adapters/inMemory.ts`).
+To use Postgres fully, add a `PostgresAdapter` implementing `StoreAdapter` and switch resolver logic in `src/lib/adapters/index.ts` based on environment.
 
 ## Extending for new activity types
 

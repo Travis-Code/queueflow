@@ -40,5 +40,5 @@ const { rows } = await query('SELECT * FROM slots WHERE is_open = $1', [true]);
 
 ## 4. Next Steps
 
-- Migrate store logic in `src/lib/store.ts` to use the database.
+- Implement a Postgres adapter for `StoreAdapter` (`src/lib/adapters/types.ts`) and wire it in `src/lib/adapters/index.ts`.
 - Add more migrations as your schema evolves.

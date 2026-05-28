@@ -36,7 +36,7 @@ This runbook provides quick response steps for common production issues.
 
 - Verify cancellation request reached booking action endpoint.
 - Confirm slot has waiting entries.
-- Inspect store logic execution path for promotion and queue recalculation.
+- Inspect `src/lib/services/bookings.ts` promotion and queue recalculation path (adapter-backed).
 
 ## 4) Recovery actions
 

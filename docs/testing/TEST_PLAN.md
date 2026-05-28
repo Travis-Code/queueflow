@@ -27,8 +27,9 @@ This plan defines minimum checks for safe releases and future automation.
 
 - [ ] `GET /api/slots` returns `200` and array payload.
 - [ ] `POST /api/bookings` valid payload returns `201`.
-- [ ] Invalid booking payload returns `400`.
-- [ ] Unknown slot ID returns `404`.
+- [ ] Invalid/malformed booking payload returns `400`.
+- [ ] Business-rule validation errors return `422`.
+- [ ] Unknown slot ID returns `422`.
 - [ ] Confirmation lookup returns `200` for valid code.
 
 ## 3) Regression focus areas

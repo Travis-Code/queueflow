@@ -16,6 +16,7 @@ This document covers production deployment for QueueFlow and release checklists.
 
 - [ ] `npm install` completes cleanly
 - [ ] `npm run build` succeeds
+- [ ] `npm test` succeeds (build + lint + smoke)
 - [ ] `migrations/001_init.sql` has been applied to target DB
 - [ ] Core routes load (`/book`, `/my-spot`, `/admin`)
 - [ ] Booking + cancel + waitlist promotion flow verified

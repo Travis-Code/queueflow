@@ -2,13 +2,13 @@
 
 ## 1. Architecture Overview
 
-QueueFlow is a full-stack web application built with Next.js (React, TypeScript) and supports both in-memory and Postgres-backed data storage. It uses a modular, component-driven architecture for maintainability and scalability.
+QueueFlow is a full-stack web application built with Next.js (React, TypeScript) and supports both in-memory and Postgres-backed data storage. It uses a modular, component-driven architecture with adapter-based data access for maintainability and scalability.
 
 ---
 
 ## 2. Technology Stack
 
-- **Frontend:** Next.js 14, React 18, TypeScript, Tailwind CSS
+- **Frontend:** Next.js 15, React 18, TypeScript, Tailwind CSS
 - **Backend:** Next.js API routes (Node.js), TypeScript
 - **Database:** In-memory (default) or PostgreSQL (via `pg`)
 - **Other:** ESLint, PostCSS, Lucide React (icons), date-fns, uuid
@@ -48,7 +48,7 @@ Types are defined in `src/types/index.ts`.
 
 1. **User Action:** User selects a slot and submits booking info.
 2. **API Call:** `POST /api/bookings` creates a booking or waitlist entry.
-3. **Data Layer:** Logic in `src/lib/store.ts` (in-memory or Postgres) handles slot capacity, waitlist, and booking creation.
+3. **Data Layer:** Service logic in `src/lib/services/*` uses `StoreAdapter` (`src/lib/adapters/*`) to handle slot capacity, waitlist, and booking creation.
 4. **Response:** Returns booking details and queue position.
 
 ```mermaid
@@ -68,7 +68,7 @@ flowchart TD
 
 ### Admin Flow
 
-- **Slot Management:** Admin actions (add, open/close, delete) call `src/lib/store.ts` methods via API routes.
+- **Slot Management:** Admin actions (add, open/close, delete) call API routes that delegate to `src/lib/services/slots.ts` via the adapter layer.
 - **Live Updates:** Admin UI fetches latest bookings/slots via API.
 
 ```mermaid
@@ -78,10 +78,11 @@ flowchart TD
 	ACT -->|Create| P1[POST /api/slots]
 	ACT -->|Open/Close| P2[PATCH /api/slots/:id]
 	ACT -->|Delete| P3[DELETE /api/slots/:id]
-	P1 --> S[src/lib/store.ts]
+	P1 --> S[src/lib/services/slots.ts]
 	P2 --> S
 	P3 --> S
-	S --> DB[(In-memory or Postgres)]
+	S --> A[src/lib/adapters/*]
+	A --> DB[(In-memory or Postgres)]
 	DB --> AQ[AdminQueue refresh]
 ```
 
@@ -92,7 +93,7 @@ flowchart TD
 ```mermaid
 flowchart TD
 	M[User cancels confirmed booking] --> CAPI[PATCH/DELETE booking endpoint]
-	CAPI --> S1[src/lib/store.ts cancel logic]
+	CAPI --> S1[src/lib/services/bookings.ts cancel logic]
 	S1 --> F{Waitlist entries exist for slot?}
 	F -->|No| END1[Slot availability updated]
 	F -->|Yes| P[Promote next waiting booking]
@@ -115,7 +116,7 @@ flowchart TD
 - **In-Memory:** Default for local/dev, all data stored in a global object.
 - **Postgres:** Enable by setting `DATABASE_URL` in `.env.local` and running migration in `migrations/001_init.sql`.
 - **DB Client:** `src/lib/db.ts` provides a safe, parameterized query interface.
-- **Store Layer:** `src/lib/store.ts` abstracts all data access, so switching between in-memory and Postgres is seamless.
+- **Adapter Layer:** `StoreAdapter` in `src/lib/adapters/types.ts` abstracts data access, so switching between in-memory and Postgres is seamless.
 
 ---
 
@@ -143,7 +144,7 @@ All major components are documented with header and inline comments for onboardi
 
 ## 9. Extensibility
 
-- **Database:** Easily swap in other databases (e.g., Prisma, MongoDB) by updating `src/lib/store.ts`.
+- **Database:** Easily swap in other databases by implementing `StoreAdapter` and updating `src/lib/adapters/index.ts`.
 - **UI:** Add new pages/components under `src/app/` and `src/components/`.
 - **API:** Add new endpoints in `src/app/api/`.
 - **Config:** Extend `ActivityConfig` for more settings.
@@ -153,7 +154,7 @@ All major components are documented with header and inline comments for onboardi
 ## 10. Testing & Validation
 
 - **Manual QA:** See `../guides/USER_GUIDE.md` for a checklist.
-- **Automated Tests:** Not yet implemented; can be added using Jest, React Testing Library, or Cypress.
+- **Automated Checks:** `npm test` runs build, lint, and smoke (`scripts/test-smoke.sh`). Additional integration/UI test suites can be added with Jest/RTL/Cypress/Playwright.
 
 ---
 
