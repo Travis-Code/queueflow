@@ -27,7 +27,6 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', partySize: 1, notes: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState<'book' | 'waitlist'>('book');
 
   const avail = selectedSlot ? selectedSlot.capacity - selectedSlot.bookedCount : 0;
   const isFull = selectedSlot ? avail <= 0 : false;

@@ -6,27 +6,37 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "npm run test:all",
+    "test:build": "npm run build",
+    "test:lint": "npm run lint",
+    "test:smoke": "bash ./scripts/test-smoke.sh",
+    "test:all": "npm run test:build && npm run test:lint && npm run test:smoke"
+  },
+  "overrides": {
+    "postcss": "8.5.15"
   },
   "dependencies": {
-    "next": "14.2.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "lucide-react": "^0.383.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
-    "uuid": "^9.0.1"
+    "lucide-react": "^0.383.0",
+    "next": "^15.5.18",
+    "pg": "^8.21.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^9",
-    "typescript": "^5",
-    "tailwindcss": "^3.4.1",
     "autoprefixer": "^10.0.1",
-    "postcss": "^8",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.0"
+    "eslint": "8.57.0",
+    "eslint-config-next": "^15.5.18",
+    "postcss": "8.5.15",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
   }
 }

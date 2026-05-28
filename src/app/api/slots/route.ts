@@ -1,10 +1,10 @@
 // src/app/api/slots/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getSlots, createSlot } from '@/lib/store';
+import { createSlot, getSlots } from '@/lib/services/slots';
 
 export async function GET(req: NextRequest) {
   const date = req.nextUrl.searchParams.get('date') ?? undefined;
-  return NextResponse.json(getSlots(date));
+  return NextResponse.json(await getSlots(date));
 }
 
 export async function POST(req: NextRequest) {
@@ -13,6 +13,6 @@ export async function POST(req: NextRequest) {
   if (!time || !date) {
     return NextResponse.json({ error: 'time and date are required' }, { status: 400 });
   }
-  const slot = createSlot(time, date, capacity, durationMinutes);
+  const slot = await createSlot(time, date, capacity, durationMinutes);
   return NextResponse.json(slot, { status: 201 });
 }

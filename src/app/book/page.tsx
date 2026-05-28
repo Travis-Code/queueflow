@@ -46,8 +46,8 @@ export default function BookPage() {
       {booking ? (
         <>
           <div className="mb-6">
-            <h1 className="text-2xl font-medium text-gray-900">You're in the queue</h1>
-            <p className="text-gray-500 text-sm mt-1">Here's your spot — we'll see you soon.</p>
+            <h1 className="text-2xl font-medium text-gray-900">You&apos;re in the queue</h1>
+            <p className="text-gray-500 text-sm mt-1">Here&apos;s your spot — we&apos;ll see you soon.</p>
           </div>
           <QueuePosition booking={booking} onCancel={handleCancel} />
         </>

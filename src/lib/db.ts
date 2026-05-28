@@ -1,17 +1,28 @@
 import { Pool } from 'pg';
 
-const connectionString = process.env.DATABASE_URL;
+let pool: Pool | null = null;
 
-if (!connectionString) {
-  throw new Error('DATABASE_URL env var is required');
+function getPool(): Pool {
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error('DATABASE_URL env var is required');
+  }
+
+  if (!pool) {
+    pool = new Pool({
+      connectionString,
+    });
+  }
+
+  return pool;
 }
 
-export const pool = new Pool({
-  connectionString,
-  // You can add more pool options here if needed
-});
-
-export async function query<T = any>(text: string, params?: any[]): Promise<{ rows: T[] }> {
-  const res = await pool.query(text, params);
-  return { rows: res.rows };
+export async function query<T = unknown>(text: string, params?: unknown[]): Promise<{ rows: T[]; rowCount: number }> {
+  const activePool = getPool();
+  const result = await activePool.query(text, params);
+  return {
+    rows: result.rows as T[],
+    rowCount: result.rowCount ?? 0,
+  };
 }

@@ -53,6 +53,100 @@ A release is considered acceptable when:
 - No blocking API errors are present.
 - Booking and waitlist lifecycle completes without data corruption.
 
+## 6) Refactor verification (current release)
+
+Use this checklist to validate the recent service-layer/backend refactor before merge or deploy.
+
+### Step A: install and build
+
+Run from repo root:
+
+```bash
+npm install
+npm run build
+```
+
+Expected:
+
+- Install completes without `ERESOLVE` errors.
+- Build completes with successful compile, lint, and type checks.
+
+### Step B: run app locally
+
+```bash
+npm run dev
+```
+
+Expected:
+
+- App starts on `http://localhost:3000`.
+- No immediate server startup errors.
+
+### Step C: API booking smoke test
+
+In another terminal (keep dev server running):
+
+```bash
+SLOT_ID=$(curl -s http://localhost:3000/api/slots | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const slots=JSON.parse(d);process.stdout.write(slots[0]?.id ?? '');});")
+echo "slot:$SLOT_ID"
+
+curl -s -o /tmp/queueflow-booking.json -w "status:%{http_code}\n" -X POST http://localhost:3000/api/bookings \
+	-H 'Content-Type: application/json' \
+	-d "{\"slotId\":\"$SLOT_ID\",\"firstName\":\"Refactor\",\"lastName\":\"Test\",\"email\":\"refactor@example.com\",\"partySize\":1}"
+
+cat /tmp/queueflow-booking.json
+```
+
+Expected:
+
+- `status:201`
+- Response contains `booking.id`, `booking.confirmationCode`, and updated `slot.bookedCount`.
+
+### Step D: lookup + cancel test
+
+Use returned booking ID and confirmation code:
+
+```bash
+curl -s "http://localhost:3000/api/waitlist?code=<CONFIRMATION_CODE>"
+
+curl -s -X PATCH "http://localhost:3000/api/bookings/<BOOKING_ID>" \
+	-H 'Content-Type: application/json' \
+	-d '{"action":"cancel"}'
+
+curl -s "http://localhost:3000/api/bookings?stats=true"
+```
+
+Expected:
+
+- Lookup returns the booking.
+- Cancel returns booking with `status: "cancelled"`.
+- Stats endpoint returns both `bookings` and `stats` payloads.
+
+### Step E: UI regression checks
+
+- [ ] Open `/book` and create booking successfully.
+- [ ] Open `/my-spot`, find booking by confirmation code.
+- [ ] Cancel from `/my-spot` and confirm status changes.
+- [ ] Open `/admin` and verify queue + slot controls still function.
+- [ ] Toggle a slot open/closed and verify state reflects on `/book`.
+
+### Step F: waitlist promotion check
+
+- [ ] Create or identify a full slot.
+- [ ] Add one waitlisted booking to that slot.
+- [ ] Cancel a confirmed booking in the same slot.
+- [ ] Verify next waitlisted booking is promoted when capacity allows.
+- [ ] Verify queue/waitlist positions are recalculated correctly.
+
+### Pass criteria for this refactor
+
+This refactor is considered verified when all of these are true:
+
+- `npm run build` passes.
+- Core API flow (`slots -> booking -> lookup -> cancel`) passes.
+- UI user/admin flows pass without runtime errors.
+- Waitlist promotion and position updates behave correctly.
+
 ## Related docs
 
 - User workflows: `../guides/USER_GUIDE.md`

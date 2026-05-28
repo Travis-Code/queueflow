@@ -1,15 +1,16 @@
 // src/app/api/bookings/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getBookings, createBooking, getStats } from '@/lib/store';
+import { createBooking, getBookings } from '@/lib/services/bookings';
+import { getStats } from '@/lib/services/stats';
 
 export async function GET(req: NextRequest) {
   const slotId = req.nextUrl.searchParams.get('slotId') ?? undefined;
   const includeStats = req.nextUrl.searchParams.get('stats') === 'true';
 
   if (includeStats) {
-    return NextResponse.json({ bookings: getBookings(slotId), stats: getStats() });
+    return NextResponse.json({ bookings: await getBookings(slotId), stats: await getStats() });
   }
-  return NextResponse.json(getBookings(slotId));
+  return NextResponse.json(await getBookings(slotId));
 }
 
 export async function POST(req: NextRequest) {
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'slotId, firstName, email, and partySize are required' }, { status: 400 });
   }
 
-  const result = createBooking({ slotId, firstName, lastName, email, partySize, notes, joinWaitlist });
+  const result = await createBooking({ slotId, firstName, lastName, email, partySize, notes, joinWaitlist });
 
   if ('error' in result) {
     return NextResponse.json({ error: result.error }, { status: 422 });
