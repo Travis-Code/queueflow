@@ -5,6 +5,15 @@ QueueFlow is a user-friendly web app for managing bookings, queues, and waitlist
 
 **Built with:** Next.js 14, React, TypeScript, and (optionally) Postgres.
 
+## Latest update (May 2026)
+
+- Refactored service/data access using adapter pattern (`src/lib/adapters/*`)
+- Added centralized API validation and error helpers (`src/lib/validation.ts`)
+- Standardized API route error handling across bookings/slots/waitlist routes
+- Improved queue/waitlist recalculation flow in booking mutations
+- Stabilized smoke tests and kept default app/test port on `3000`
+- Verified with `npm test` (build + lint + smoke)
+
 ---
 
 ## What does QueueFlow do?
