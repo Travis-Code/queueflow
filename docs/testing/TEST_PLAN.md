@@ -16,8 +16,8 @@ This plan defines minimum checks for safe releases and future automation.
 
 - [ ] Open `/book` and verify slots load.
 - [ ] Create a booking with valid user info.
-- [ ] Verify confirmation code + queue position appears.
-- [ ] Lookup booking in `/my-spot` using confirmation code.
+- [ ] Verify booking details and queue position appear.
+- [ ] Lookup booking in `/my-spot` using phone number.
 - [ ] Cancel booking and verify updated status.
 - [ ] Fill a slot and verify waitlist path works.
 - [ ] Cancel confirmed booking and verify waitlist promotion.
@@ -29,8 +29,9 @@ This plan defines minimum checks for safe releases and future automation.
 - [ ] `POST /api/bookings` valid payload returns `201`.
 - [ ] Invalid/malformed booking payload returns `400`.
 - [ ] Business-rule validation errors return `422`.
+- [ ] Missing/invalid phone number returns `400` or `422`.
 - [ ] Unknown slot ID returns `422`.
-- [ ] Confirmation lookup returns `200` for valid code.
+- [ ] Phone lookup returns `200` for a valid booking phone number.
 
 ## 3) Regression focus areas
 
@@ -93,7 +94,7 @@ echo "slot:$SLOT_ID"
 
 curl -s -o /tmp/queueflow-booking.json -w "status:%{http_code}\n" -X POST http://localhost:3000/api/bookings \
 	-H 'Content-Type: application/json' \
-	-d "{\"slotId\":\"$SLOT_ID\",\"firstName\":\"Refactor\",\"lastName\":\"Test\",\"email\":\"refactor@example.com\",\"partySize\":1}"
+	-d "{\"slotId\":\"$SLOT_ID\",\"firstName\":\"Refactor\",\"lastName\":\"Test\",\"email\":\"refactor@example.com\",\"phoneNumber\":\"+15551234567\",\"partySize\":1}"
 
 cat /tmp/queueflow-booking.json
 ```
@@ -101,14 +102,14 @@ cat /tmp/queueflow-booking.json
 Expected:
 
 - `status:201`
-- Response contains `booking.id`, `booking.confirmationCode`, and updated `slot.bookedCount`.
+- Response contains `booking.id` and updated `slot.bookedCount`.
 
 ### Step D: lookup + cancel test
 
-Use returned booking ID and confirmation code:
+Use the returned booking details and phone number:
 
 ```bash
-curl -s "http://localhost:3000/api/waitlist?code=<CONFIRMATION_CODE>"
+curl -s "http://localhost:3000/api/waitlist?phoneNumber=<PHONE_NUMBER>"
 
 curl -s -X PATCH "http://localhost:3000/api/bookings/<BOOKING_ID>" \
 	-H 'Content-Type: application/json' \
@@ -126,7 +127,7 @@ Expected:
 ### Step E: UI regression checks
 
 - [ ] Open `/book` and create booking successfully.
-- [ ] Open `/my-spot`, find booking by confirmation code.
+- [ ] Open `/my-spot`, find booking by phone number.
 - [ ] Cancel from `/my-spot` and confirm status changes.
 - [ ] Open `/admin` and verify queue + slot controls still function.
 - [ ] Toggle a slot open/closed and verify state reflects on `/book`.

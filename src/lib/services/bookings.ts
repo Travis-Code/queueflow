@@ -3,12 +3,14 @@ import type { Booking, TimeSlot } from '@/types';
 import type { StoreAdapter } from '@/lib/adapters/types';
 import { availableSpots, generateCode, getOrderedWaitingBookings, recalculateSlotPositions } from './helpers';
 import { getAdapter } from '@/lib/adapters';
+import { normalizePhoneNumber } from '@/lib/validation';
 
 export interface CreateBookingOptions {
   slotId: string;
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber: string;
   partySize: number;
   notes?: string;
   joinWaitlist?: boolean;
@@ -19,9 +21,14 @@ export async function getBookings(slotId?: string, adapter?: StoreAdapter): Prom
   return a.getBookings(slotId);
 }
 
-export async function getBookingByCode(code: string, adapter?: StoreAdapter): Promise<Booking | undefined> {
+export async function getBookingByPhoneNumber(phoneNumber: string, adapter?: StoreAdapter): Promise<Booking | undefined> {
   const a = adapter || getAdapter();
-  return a.getBookingByCode(code);
+  const normalizedPhone = normalizePhoneNumber(phoneNumber);
+  const bookings = await a.getBookings();
+
+  return bookings
+    .filter((booking) => normalizePhoneNumber(booking.phoneNumber) === normalizedPhone && booking.status !== 'cancelled')
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
 }
 
 export async function getBookingById(id: string, adapter?: StoreAdapter): Promise<Booking | undefined> {
@@ -75,6 +82,7 @@ export async function createBooking(
     firstName: opts.firstName,
     lastName: opts.lastName,
     email: opts.email,
+    phoneNumber: opts.phoneNumber,
     partySize: opts.partySize,
     status: isWaiting ? 'waiting' : 'confirmed',
     queuePosition,

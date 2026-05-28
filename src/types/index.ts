@@ -21,6 +21,7 @@ export interface Booking {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber: string;
   partySize: number;
   status: BookingStatus;
   queuePosition: number;    // position within the slot
@@ -54,6 +55,7 @@ export interface CreateBookingRequest {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber: string;
   partySize: number;
   notes?: string;
   joinWaitlist?: boolean;

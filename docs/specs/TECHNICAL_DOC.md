@@ -35,7 +35,7 @@ migrations/        # SQL migration(s) for Postgres
 ## 4. Data Model
 
 - **TimeSlot:** Represents a bookable slot (id, time, date, capacity, bookedCount, isOpen, duration)
-- **Booking:** User booking or waitlist entry (id, confirmationCode, slotId, user info, status, queuePosition, createdAt)
+- **Booking:** User booking or waitlist entry (id, phoneNumber, slotId, user info, status, queuePosition, createdAt)
 - **ActivityConfig:** Activity settings (name, description, defaultCapacity, waitlistEnabled, etc.)
 
 Types are defined in `src/types/index.ts`.
@@ -59,7 +59,7 @@ flowchart TD
 	API --> V{Slot open and capacity available?}
 	V -->|Yes| C[Create confirmed booking]
 	V -->|No| WL[Create waiting booking]
-	C --> R[Return confirmation code and queue position]
+	C --> R[Return booking details and queue position]
 	WL --> R
 	R --> UI[Render QueuePosition]
 ```
@@ -126,7 +126,7 @@ flowchart TD
 - `POST /api/slots` — Create a new slot
 - `GET /api/bookings` — List bookings (admin)
 - `POST /api/bookings` — Create booking or join waitlist
-- `GET /api/waitlist` — Lookup booking/waitlist by confirmation code
+- `GET /api/waitlist` — Lookup booking/waitlist by phone number
 
 All endpoints are implemented in `src/app/api/`.
 

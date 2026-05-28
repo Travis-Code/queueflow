@@ -1,20 +1,27 @@
 // src/app/api/waitlist/route.ts
-// Lookup a booking by confirmation code (used by "Check my spot" flow)
+// Lookup a booking by phone number (used by "Check my spot" flow)
 import { NextRequest, NextResponse } from 'next/server';
-import { getBookingByCode } from '@/lib/services/bookings';
-import { createErrorResponse } from '@/lib/validation';
+import { getBookingByPhoneNumber } from '@/lib/services/bookings';
+import { createErrorResponse, isValidPhoneNumber } from '@/lib/validation';
 
 export async function GET(req: NextRequest) {
   try {
-    const code = req.nextUrl.searchParams.get('code');
-    if (!code || typeof code !== 'string' || !code.trim()) {
+    const phoneNumber = req.nextUrl.searchParams.get('phoneNumber') ?? req.nextUrl.searchParams.get('phone');
+    if (!phoneNumber || !phoneNumber.trim()) {
       return NextResponse.json(
-        createErrorResponse('code parameter is required', 'MISSING_PARAM'),
+        createErrorResponse('phoneNumber parameter is required', 'MISSING_PARAM'),
         { status: 400 }
       );
     }
-    
-    const booking = await getBookingByCode(code.toUpperCase());
+
+    if (!isValidPhoneNumber(phoneNumber)) {
+      return NextResponse.json(
+        createErrorResponse('phoneNumber must contain 10 to 15 digits', 'VALIDATION_ERROR'),
+        { status: 422 }
+      );
+    }
+
+    const booking = await getBookingByPhoneNumber(phoneNumber);
     if (!booking) {
       return NextResponse.json(
         createErrorResponse('Booking not found', 'NOT_FOUND'),

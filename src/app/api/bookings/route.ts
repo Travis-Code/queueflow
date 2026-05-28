@@ -34,9 +34,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { slotId, firstName, lastName, email, partySize, notes, joinWaitlist } = body;
+    const { slotId, firstName, lastName, email, phoneNumber, partySize, notes, joinWaitlist } = body;
 
-    const result = await createBooking({ slotId, firstName, lastName, email, partySize, notes, joinWaitlist });
+    const result = await createBooking({ slotId, firstName, lastName, email, phoneNumber, partySize, notes, joinWaitlist });
 
     if ('error' in result) {
       return NextResponse.json(

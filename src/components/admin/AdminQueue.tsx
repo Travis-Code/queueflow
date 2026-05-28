@@ -87,7 +87,7 @@ export function AdminQueue() {
               {/* Booking details */}
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-800 truncate">{b.firstName} {b.lastName}</div>
-                <div className="text-xs text-gray-500">{b.slotTime} · Party of {b.partySize} · {b.confirmationCode}</div>
+                <div className="text-xs text-gray-500">{b.slotTime} · Party of {b.partySize} · {b.phoneNumber}</div>
               </div>
               {/* Status badge */}
               <span className={clsx('text-xs font-medium px-2 py-0.5 rounded-full', statusColor[b.status])}>

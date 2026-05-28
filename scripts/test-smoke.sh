@@ -45,7 +45,7 @@ fi
 
 HTTP_STATUS="$(curl -s -o "$BOOKING_FILE" -w "%{http_code}" -X POST "http://localhost:${SMOKE_PORT}/api/bookings" \
   -H 'Content-Type: application/json' \
-  -d "{\"slotId\":\"$SLOT_ID\",\"firstName\":\"Smoke\",\"lastName\":\"Test\",\"email\":\"smoke@example.com\",\"partySize\":1}")"
+  -d "{\"slotId\":\"$SLOT_ID\",\"firstName\":\"Smoke\",\"lastName\":\"Test\",\"email\":\"smoke@example.com\",\"phoneNumber\":\"+15551234567\",\"partySize\":1}")"
 
 if [[ "$HTTP_STATUS" != "201" ]]; then
   echo "Smoke test failed: expected HTTP 201 but got $HTTP_STATUS"
@@ -54,6 +54,6 @@ if [[ "$HTTP_STATUS" != "201" ]]; then
   exit 1
 fi
 
-node -e "const fs=require('fs'); const payload=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if(!payload.booking?.id || !payload.booking?.confirmationCode || !payload.slot?.id){ process.exit(1); }" "$BOOKING_FILE"
+node -e "const fs=require('fs'); const payload=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); if(!payload.booking?.id || !payload.booking?.phoneNumber || !payload.slot?.id){ process.exit(1); }" "$BOOKING_FILE"
 
 echo "Smoke test passed: booking API flow returned HTTP 201 with valid payload."

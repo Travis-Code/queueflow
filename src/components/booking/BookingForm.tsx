@@ -4,7 +4,7 @@
  *
  * The form users fill out to book a slot or join the waitlist.
  *
- * - Collects name, email, party size, and optional notes.
+ * - Collects name, email, phone number, party size, and optional notes.
  * - Validates required fields and selected slot.
  * - Submits booking or waitlist request to the backend.
  * - Shows errors or success messages.
@@ -24,7 +24,7 @@ interface BookingFormProps {
 }
 
 export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', partySize: 1, notes: '' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phoneNumber: '', partySize: 1, notes: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,7 +35,7 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
   async function submit(joinWaitlist: boolean) {
     // Validate slot and required fields
     if (!selectedSlot) { setError('Please select a time slot first.'); return; }
-    if (!form.firstName || !form.email) { setError('Name and email are required.'); return; }
+    if (!form.firstName || !form.email || !form.phoneNumber) { setError('Name, email, and phone number are required.'); return; }
     setError(''); setLoading(true);
     try {
       // Send booking request to API
@@ -94,6 +94,18 @@ export function BookingForm({ selectedSlot, onSuccess }: BookingFormProps) {
           value={form.email}
           onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
           placeholder="alex@email.com"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+      </div>
+
+      {/* Phone number field */}
+      <div className="mb-3">
+        <label className="text-xs text-gray-500 block mb-1">Phone number *</label>
+        <input
+          type="tel"
+          value={form.phoneNumber}
+          onChange={e => setForm(f => ({ ...f, phoneNumber: e.target.value }))}
+          placeholder="(555) 123-4567"
           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
       </div>

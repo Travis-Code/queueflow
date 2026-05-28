@@ -28,7 +28,7 @@ QueueFlow is a user-friendly web app for managing bookings, queues, and waitlist
 ## How it works (for users)
 
 1. **Book a slot:** Pick a time, fill in your info, and confirm your booking. If the slot is full, you can join the waitlist.
-2. **Check your spot:** Use your confirmation code to see your queue position or cancel if needed.
+2. **Check your spot:** Use your phone number to see your queue position or cancel if needed.
 3. **Admins:** Use the admin panel to add/remove slots, see live bookings, and adjust settings.
 
 ---
@@ -43,7 +43,7 @@ src/
 │   ├── api/              # Server-side routes for data (slots, bookings, waitlist)
 │   │   ├── slots/        # Endpoints for slot CRUD (create, read, update, delete)
 │   │   ├── bookings/     # Endpoints for booking CRUD and status
-│   │   └── waitlist/     # Endpoint for checking waitlist/booking by code
+│   │   └── waitlist/     # Endpoint for checking waitlist/booking by phone number
 │   ├── book/             # The main booking page (user flow)
 │   ├── my-spot/          # Lets users check or cancel their spot
 │   └── admin/            # Admin dashboard for managing everything
@@ -95,7 +95,7 @@ src/
 ## Features
 
 - **Book a slot** — browse time slots, select one, fill in details, confirm or join waitlist
-- **My spot** — check queue position via confirmation code, cancel booking
+- **My spot** — check queue position via phone number, cancel booking
 - **Admin panel** — live queue view, slot management (add/toggle/delete), activity settings
 - **Waitlist promotion** — when a confirmed booking is cancelled, the next waitlisted person is automatically promoted
 
@@ -160,7 +160,7 @@ To use Postgres fully, add a `PostgresAdapter` implementing `StoreAdapter` and s
 | PATCH | `/api/slots/:id` | Update slot fields |
 | DELETE | `/api/slots/:id` | Delete a slot |
 | GET | `/api/bookings` | List bookings (optional `?slotId=`, `?stats=true`) |
-| POST | `/api/bookings` | Create booking `{ slotId, firstName, lastName, email, partySize, joinWaitlist? }` |
+| POST | `/api/bookings` | Create booking `{ slotId, firstName, lastName, email, phoneNumber, partySize, joinWaitlist? }` |
 | PATCH | `/api/bookings/:id` | `{ action: 'cancel' }` |
 | DELETE | `/api/bookings/:id` | Hard-remove (admin) |
-| GET | `/api/waitlist?code=QF-XXXX` | Lookup booking by code |
+| GET | `/api/waitlist?phoneNumber=...` | Lookup booking by phone number |

@@ -6,7 +6,7 @@ Base URL (local): `http://localhost:3000`
 
 - All request/response bodies are JSON.
 - IDs are UUIDs or deterministic slot IDs depending on endpoint source.
-- Booking lookup uses confirmation code format like `QF-1234`.
+- Booking lookup uses the phone number used during booking.
 - Error responses are standardized as:
 
 ```json
@@ -107,6 +107,7 @@ Create a booking or waitlist entry.
   "firstName": "Test",
   "lastName": "User",
   "email": "test@example.com",
+  "phoneNumber": "+15551234567",
   "partySize": 1,
   "joinWaitlist": false,
   "notes": "Optional"
@@ -119,7 +120,6 @@ Create a booking or waitlist entry.
 {
   "booking": {
     "id": "...",
-    "confirmationCode": "QF-4821",
     "status": "confirmed",
     "queuePosition": 5
   },
@@ -133,7 +133,7 @@ Create a booking or waitlist entry.
 ### Common error responses
 
 - `400`: invalid payload (missing required fields, malformed body)
-- `422`: validation/business rule failures (invalid email, slot not found/closed, waitlist disabled, party-size limits)
+- `422`: validation/business rule failures (invalid email, invalid phone number, slot not found/closed, waitlist disabled, party-size limits)
 
 ## `PATCH /api/bookings/:id`
 
@@ -159,13 +159,22 @@ Admin hard-delete for a booking.
 { "success": true }
 ```
 
-## `GET /api/waitlist?code=QF-1234`
+## `GET /api/waitlist?phoneNumber=%2B15551234567`
 
-Lookup booking/waitlist details by confirmation code.
+Lookup booking/waitlist details by phone number.
 
 ### Success `200`
 
 Returns booking object including `status`, `queuePosition`, and optional `waitlistPosition`.
+
+### Query params
+
+- `phoneNumber`: phone number used during booking
+
+### Common error responses
+
+- `400`: missing lookup parameter
+- `422`: invalid phone number format
 
 ### Error `404`
 

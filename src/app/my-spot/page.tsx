@@ -6,17 +6,17 @@ import type { Booking } from '@/types';
 import { QueuePosition } from '@/components/booking/QueuePosition';
 
 export default function MySpotPage() {
-  const [code, setCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function lookup() {
-    if (!code.trim()) { setError('Enter your confirmation code'); return; }
+    if (!phoneNumber.trim()) { setError('Enter your phone number'); return; }
     setLoading(true); setError('');
-    const res = await fetch(`/api/waitlist?code=${encodeURIComponent(code.toUpperCase())}`);
+    const res = await fetch(`/api/waitlist?phoneNumber=${encodeURIComponent(phoneNumber)}`);
     const data = await res.json();
-    if (!res.ok) { setError('Booking not found — double-check your code.'); setBooking(null); }
+    if (!res.ok) { setError('Booking not found — double-check your phone number.'); setBooking(null); }
     else setBooking(data);
     setLoading(false);
   }
@@ -28,22 +28,22 @@ export default function MySpotPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'cancel' }),
     });
-    setBooking(null); setCode('');
+    setBooking(null); setPhoneNumber('');
   }
 
   return (
     <main className="max-w-md mx-auto px-4 py-12">
       <h1 className="text-2xl font-medium text-gray-900 mb-1">Check my spot</h1>
-      <p className="text-gray-500 text-sm mb-6">Enter your confirmation code to see your queue position.</p>
+      <p className="text-gray-500 text-sm mb-6">Enter your phone number to see your queue position.</p>
 
       {!booking ? (
         <div className="space-y-3">
           <input
-            value={code}
-            onChange={e => setCode(e.target.value)}
+            value={phoneNumber}
+            onChange={e => setPhoneNumber(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && lookup()}
-            placeholder="QF-1234"
-            className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-500 uppercase"
+            placeholder="(555) 123-4567"
+            className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button

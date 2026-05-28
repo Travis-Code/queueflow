@@ -9,7 +9,7 @@ QueueFlow is a web application for managing bookings, queues, and waitlists for 
 ## Core Features
 
 - **Slot Booking:** Users can browse available time slots, book a spot, or join a waitlist if a slot is full.
-- **Queue Position Tracking:** Users receive a confirmation code and can check their booking or waitlist status at any time.
+- **Queue Position Tracking:** Users can check their booking or waitlist status at any time using their phone number.
 - **Admin Dashboard:** Admins can add, open/close, or delete slots, and view/manage all bookings and waitlists in real time.
 - **Waitlist Promotion:** When a booking is cancelled, the next user on the waitlist is automatically promoted to a confirmed spot.
 - **Configurable Activity Settings:** Admins can adjust slot capacity, duration, waitlist behavior, and other activity parameters.
@@ -24,10 +24,10 @@ QueueFlow is a web application for managing bookings, queues, and waitlists for 
    - Select a time slot on the booking page.
    - Enter required details (first name, email, party size).
    - Confirm booking or join the waitlist if the slot is full.
-   - Receive a confirmation code and queue position.
+   - Receive queue position and booking details.
 
 2. **Check or Cancel Booking**
-   - Go to "My spot" and enter the confirmation code.
+   - Go to "My spot" and enter the phone number used for the booking.
    - View current status (confirmed, waiting, cancelled).
    - Optionally cancel the booking.
 
@@ -63,7 +63,7 @@ QueueFlow is a web application for managing bookings, queues, and waitlists for 
 ## Data Model (Simplified)
 
 - **TimeSlot:** Represents a bookable slot (id, time, date, capacity, booked count, open/closed, duration).
-- **Booking:** Represents a user's booking or waitlist entry (id, confirmation code, slotId, user info, status, queue position).
+- **Booking:** Represents a user's booking or waitlist entry (id, phone number, slotId, user info, status, queue position).
 - **ActivityConfig:** Settings for the activity (name, description, default capacity, waitlist enabled, etc).
 
 ---

@@ -22,7 +22,7 @@ After success, QueueFlow shows your confirmation details and queue position.
 ## 2) Customer: Check your queue status
 
 1. Go to **My spot**.
-2. Enter your confirmation code (format like `QF-1234`).
+2. Enter your phone number used for the booking.
 3. View your status:
    - `confirmed`
    - `waiting`
@@ -50,8 +50,9 @@ Go to the **Admin** tab to:
 ### Booking fails
 
 - Make sure a slot is selected.
-- Ensure required fields are filled (`firstName`, `email`).
+- Ensure required fields are filled (`firstName`, `email`, `phone number`).
 - Confirm email is valid (example: `name@example.com`).
+- Confirm phone number is valid and includes at least 10 digits.
 - Confirm party size is greater than 0 and does not exceed configured max.
 
 ### I do not see recent changes
@@ -63,9 +64,9 @@ Go to the **Admin** tab to:
 npm run dev
 ```
 
-### Confirmation code not found
+### Phone number not found
 
-- Re-check the exact code format (example: `QF-4821`).
+- Re-check the phone number format and include the same digits used during booking.
 - Ensure the booking was created successfully before lookup.
 
 ## 6) Developer quick start
@@ -89,8 +90,8 @@ Use this checklist for a fast validation pass:
 
 - [ ] Open `http://localhost:3000/book` and confirm slots load.
 - [ ] Select an open slot and submit a valid booking.
-- [ ] Verify success screen shows confirmation code and queue position.
-- [ ] Copy the confirmation code, go to `/my-spot`, and confirm lookup works.
+- [ ] Verify success screen shows booking details and queue position.
+- [ ] Go to `/my-spot`, enter the phone number used for the booking, and confirm lookup works.
 - [ ] Cancel the booking from `/my-spot` and verify status updates.
 - [ ] Try booking a full slot and confirm waitlist path works.
 - [ ] Open `/admin` and verify bookings list reflects latest actions.

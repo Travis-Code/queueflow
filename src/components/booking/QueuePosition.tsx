@@ -4,7 +4,7 @@
  *
  * Shows the user their current position in the queue or waitlist.
  *
- * - Displays confirmation code, status (confirmed/waiting), and position.
+ * - Displays phone number, status (confirmed/waiting), and position.
  * - Shows a progress bar and estimated wait time.
  * - Lets users cancel their booking.
  *
@@ -80,7 +80,7 @@ export function QueuePosition({ booking, onCancel }: QueuePositionProps) {
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Booking details</h3>
         <dl className="space-y-2">
           {[
-            ['Confirmation', booking.confirmationCode],
+            ['Phone number', booking.phoneNumber],
             ['Time slot', booking.slotTime],
             ['Date', booking.slotDate],
             ['Party size', `${booking.partySize} ${booking.partySize === 1 ? 'person' : 'people'}`],

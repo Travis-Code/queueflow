@@ -61,7 +61,7 @@ npm run dev
 
 1. Open `/book` and confirm slots render.
 2. Submit a booking with valid details.
-3. Use returned confirmation code in `/my-spot`.
+3. Use the booking phone number in `/my-spot`.
 4. Open `/admin` and verify booking appears.
 
 Or run automated smoke:

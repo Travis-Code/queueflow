@@ -24,6 +24,19 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
+ * Phone validation for booking verification
+ * Accepts common formatting characters and requires 10-15 digits total.
+ */
+export function isValidPhoneNumber(phoneNumber: string): boolean {
+  const digits = phoneNumber.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 15;
+}
+
+export function normalizePhoneNumber(phoneNumber: string): string {
+  return phoneNumber.replace(/\D/g, '');
+}
+
+/**
  * Validate party size against config constraints
  */
 export function validatePartySize(size: unknown, maxPartySize: number): ValidationResult {
@@ -44,7 +57,7 @@ export function validateBookingRequest(body: unknown): ValidationResult {
     return { valid: false, error: 'Request body is required and must be JSON', status: 400 };
   }
 
-  const { slotId, firstName, email, partySize } = body as Record<string, unknown>;
+  const { slotId, firstName, email, phoneNumber, partySize } = body as Record<string, unknown>;
 
   if (typeof slotId !== 'string' || !slotId.trim()) {
     return { valid: false, error: 'slotId is required and must be a non-empty string', status: 400 };
@@ -60,6 +73,14 @@ export function validateBookingRequest(body: unknown): ValidationResult {
 
   if (!isValidEmail(email)) {
     return { valid: false, error: 'email must be a valid email address', status: 422 };
+  }
+
+  if (typeof phoneNumber !== 'string' || !phoneNumber.trim()) {
+    return { valid: false, error: 'phoneNumber is required', status: 400 };
+  }
+
+  if (!isValidPhoneNumber(phoneNumber)) {
+    return { valid: false, error: 'phoneNumber must contain 10 to 15 digits', status: 422 };
   }
 
   if (typeof partySize !== 'number' || partySize < 1) {
