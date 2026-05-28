@@ -1,11 +1,16 @@
 import type { ActivityConfig } from '@/types';
-import { store } from './state';
+import { getAdapter } from '@/lib/adapters';
+import type { StoreAdapter } from '@/lib/adapters/types';
 
-export async function getConfig(): Promise<ActivityConfig> {
-  return { ...store.config };
+export async function getConfig(adapter?: StoreAdapter): Promise<ActivityConfig> {
+  const a = adapter || getAdapter();
+  return a.getConfig();
 }
 
-export async function updateConfig(updates: Partial<ActivityConfig>): Promise<ActivityConfig> {
-  store.config = { ...store.config, ...updates };
-  return store.config;
+export async function updateConfig(
+  updates: Partial<ActivityConfig>,
+  adapter?: StoreAdapter,
+): Promise<ActivityConfig> {
+  const a = adapter || getAdapter();
+  return a.updateConfig(updates);
 }

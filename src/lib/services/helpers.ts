@@ -1,5 +1,5 @@
 import type { Booking, TimeSlot } from '@/types';
-import { store } from './state';
+import type { StoreAdapter } from '@/lib/adapters/types';
 
 export function generateCode(): string {
   return 'QF-' + Math.floor(1000 + Math.random() * 9000);
@@ -13,41 +13,41 @@ function byCreatedAtAscending(left: Booking, right: Booking): number {
   return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
 }
 
-export function getOrderedConfirmedBookings(slotId: string): Booking[] {
-  return store.bookings
+export function getOrderedConfirmedBookings(bookings: Booking[], slotId: string): Booking[] {
+  return bookings
     .filter((booking) => booking.slotId === slotId && booking.status === 'confirmed')
     .sort(byCreatedAtAscending);
 }
 
-export function getOrderedWaitingBookings(slotId: string): Booking[] {
-  return store.bookings
+export function getOrderedWaitingBookings(bookings: Booking[], slotId: string): Booking[] {
+  return bookings
     .filter((booking) => booking.slotId === slotId && booking.status === 'waiting')
     .sort(byCreatedAtAscending);
 }
 
-export function recalculateSlotPositions(slotId: string): void {
-  const confirmed = getOrderedConfirmedBookings(slotId);
-  const waiting = getOrderedWaitingBookings(slotId);
+export async function recalculateSlotPositions(
+  slotId: string,
+  adapter: StoreAdapter,
+  allBookings: Booking[],
+): Promise<void> {
+  const confirmed = getOrderedConfirmedBookings(allBookings, slotId);
+  const waiting = getOrderedWaitingBookings(allBookings, slotId);
 
-  confirmed.forEach((booking, index) => {
-    const bookingIndex = store.bookings.findIndex((candidate) => candidate.id === booking.id);
-    if (bookingIndex >= 0) {
-      store.bookings[bookingIndex] = {
-        ...store.bookings[bookingIndex],
-        queuePosition: index + 1,
-        waitlistPosition: undefined,
-      };
-    }
-  });
+  // Update all confirmed bookings with correct queue positions
+  for (const booking of confirmed) {
+    const index = confirmed.indexOf(booking);
+    await adapter.updateBooking(booking.id, {
+      queuePosition: index + 1,
+      waitlistPosition: undefined,
+    });
+  }
 
-  waiting.forEach((booking, index) => {
-    const bookingIndex = store.bookings.findIndex((candidate) => candidate.id === booking.id);
-    if (bookingIndex >= 0) {
-      store.bookings[bookingIndex] = {
-        ...store.bookings[bookingIndex],
-        queuePosition: confirmed.length + index + 1,
-        waitlistPosition: index + 1,
-      };
-    }
-  });
+  // Update all waiting bookings with correct waitlist positions
+  for (const booking of waiting) {
+    const index = waiting.indexOf(booking);
+    await adapter.updateBooking(booking.id, {
+      queuePosition: confirmed.length + index + 1,
+      waitlistPosition: index + 1,
+    });
+  }
 }

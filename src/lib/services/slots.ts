@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { TimeSlot } from '@/types';
 import { query } from '@/lib/db';
-import { store } from './state';
+import { getAdapter } from '@/lib/adapters';
+import type { StoreAdapter } from '@/lib/adapters/types';
 
 interface SlotRow {
   id: string;
@@ -16,18 +17,6 @@ interface SlotRow {
   duration_minutes?: number;
 }
 
-const slotSelectClause = `
-  SELECT
-    id,
-    time,
-    date::text AS "date",
-    capacity,
-    booked_count AS "bookedCount",
-    is_open AS "isOpen",
-    duration_minutes AS "durationMinutes"
-  FROM slots
-`;
-
 function normalizeSlot(row: SlotRow): TimeSlot {
   return {
     id: row.id,
@@ -40,43 +29,37 @@ function normalizeSlot(row: SlotRow): TimeSlot {
   };
 }
 
-export async function getSlots(date?: string): Promise<TimeSlot[]> {
-  try {
-    const params: unknown[] = [];
-    let sql = slotSelectClause;
-
-    if (date) {
-      sql += ' WHERE date = $1';
-      params.push(date);
-    }
-
-    const { rows } = await query<SlotRow>(sql, params);
-    return rows.map(normalizeSlot);
-  } catch {
-    return date ? store.slots.filter((slot) => slot.date === date) : store.slots;
-  }
+export async function getSlots(date?: string, adapter?: StoreAdapter): Promise<TimeSlot[]> {
+  const a = adapter || getAdapter();
+  return a.getSlots(date);
 }
 
-export async function getSlotById(id: string): Promise<TimeSlot | undefined> {
-  try {
-    const { rows } = await query<SlotRow>(`${slotSelectClause} WHERE id = $1`, [id]);
-    return rows[0] ? normalizeSlot(rows[0]) : undefined;
-  } catch {
-    return store.slots.find((slot) => slot.id === id);
-  }
+export async function getSlotById(id: string, adapter?: StoreAdapter): Promise<TimeSlot | undefined> {
+  const a = adapter || getAdapter();
+  return a.getSlotById(id);
 }
 
-export async function createSlot(time: string, date: string, capacity?: number, durationMinutes?: number): Promise<TimeSlot> {
+export async function createSlot(
+  time: string,
+  date: string,
+  capacity?: number,
+  durationMinutes?: number,
+  adapter?: StoreAdapter,
+): Promise<TimeSlot> {
+  const a = adapter || getAdapter();
+  const config = await a.getConfig();
+
   const slot: TimeSlot = {
     id: uuidv4(),
     time,
     date,
-    capacity: capacity ?? store.config.defaultCapacity,
+    capacity: capacity ?? config.defaultCapacity,
     bookedCount: 0,
     isOpen: true,
-    durationMinutes: durationMinutes ?? store.config.defaultDurationMinutes,
+    durationMinutes: durationMinutes ?? config.defaultDurationMinutes,
   };
 
+  // Try database first, fall back to in-memory adapter
   try {
     const { rows } = await query<SlotRow>(
       `
@@ -93,15 +76,19 @@ export async function createSlot(time: string, date: string, capacity?: number, 
       `,
       [slot.id, slot.time, slot.date, slot.capacity, slot.bookedCount, slot.isOpen, slot.durationMinutes],
     );
-
     return normalizeSlot(rows[0]);
   } catch {
-    store.slots.push(slot);
-    return slot;
+    return a.createSlot(slot);
   }
 }
 
-export async function updateSlot(id: string, updates: Partial<TimeSlot>): Promise<TimeSlot | null> {
+export async function updateSlot(
+  id: string,
+  updates: Partial<TimeSlot>,
+  adapter?: StoreAdapter,
+): Promise<TimeSlot | null> {
+  const a = adapter || getAdapter();
+  
   const fields = [
     ['time', updates.time],
     ['date', updates.date],
@@ -112,9 +99,10 @@ export async function updateSlot(id: string, updates: Partial<TimeSlot>): Promis
   ].filter(([, value]) => value !== undefined);
 
   if (fields.length === 0) {
-    return (await getSlotById(id)) ?? null;
+    return (await a.getSlotById(id)) ?? null;
   }
 
+  // Try database first, fall back to adapter
   try {
     const setClause = fields
       .map(([column], index) => `${column} = $${index + 2}`)
@@ -143,26 +131,18 @@ export async function updateSlot(id: string, updates: Partial<TimeSlot>): Promis
 
     return normalizeSlot(rows[0]);
   } catch {
-    const slotIndex = store.slots.findIndex((slot) => slot.id === id);
-    if (slotIndex === -1) {
-      return null;
-    }
-
-    store.slots[slotIndex] = { ...store.slots[slotIndex], ...updates };
-    return store.slots[slotIndex];
+    return a.updateSlot(id, updates);
   }
 }
 
-export async function deleteSlot(id: string): Promise<boolean> {
+export async function deleteSlot(id: string, adapter?: StoreAdapter): Promise<boolean> {
+  const a = adapter || getAdapter();
+
+  // Try database first, fall back to adapter
   try {
     const { rowCount } = await query('DELETE FROM slots WHERE id = $1', [id]);
-    if (rowCount > 0) {
-      return true;
-    }
+    return rowCount > 0;
   } catch {
+    return a.deleteSlot(id);
   }
-
-  const before = store.slots.length;
-  store.slots = store.slots.filter((slot) => slot.id !== id);
-  return store.slots.length < before;
 }

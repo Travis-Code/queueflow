@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Booking, TimeSlot } from '@/types';
+import type { StoreAdapter } from '@/lib/adapters/types';
 import { availableSpots, generateCode, getOrderedWaitingBookings, recalculateSlotPositions } from './helpers';
-import { getSlotById, updateSlot } from './slots';
-import { store } from './state';
+import { getAdapter } from '@/lib/adapters';
 
 export interface CreateBookingOptions {
   slotId: string;
@@ -14,32 +14,39 @@ export interface CreateBookingOptions {
   joinWaitlist?: boolean;
 }
 
-export async function getBookings(slotId?: string): Promise<Booking[]> {
-  return slotId ? store.bookings.filter((booking) => booking.slotId === slotId) : store.bookings;
+export async function getBookings(slotId?: string, adapter?: StoreAdapter): Promise<Booking[]> {
+  const a = adapter || getAdapter();
+  return a.getBookings(slotId);
 }
 
-export async function getBookingByCode(code: string): Promise<Booking | undefined> {
-  return store.bookings.find((booking) => booking.confirmationCode === code);
+export async function getBookingByCode(code: string, adapter?: StoreAdapter): Promise<Booking | undefined> {
+  const a = adapter || getAdapter();
+  return a.getBookingByCode(code);
 }
 
-export async function getBookingById(id: string): Promise<Booking | undefined> {
-  return store.bookings.find((booking) => booking.id === id);
-}
-
-function getUpdatedBooking(id: string): Booking {
-  return store.bookings.find((booking) => booking.id === id)!;
+export async function getBookingById(id: string, adapter?: StoreAdapter): Promise<Booking | undefined> {
+  const a = adapter || getAdapter();
+  return a.getBookingById(id);
 }
 
 export async function createBooking(
   opts: CreateBookingOptions,
+  adapter?: StoreAdapter,
 ): Promise<{ booking: Booking; slot: TimeSlot } | { error: string }> {
-  const slot = await getSlotById(opts.slotId);
+  const a = adapter || getAdapter();
+  
+  const slot = await a.getSlotById(opts.slotId);
   if (!slot) {
     return { error: 'Slot not found' };
   }
 
   if (!slot.isOpen) {
     return { error: 'Slot is closed' };
+  }
+
+  const config = await a.getConfig();
+  if (opts.partySize > config.maxPartySize) {
+    return { error: `Party size cannot exceed ${config.maxPartySize}` };
   }
 
   const avail = availableSpots(slot);
@@ -49,11 +56,11 @@ export async function createBooking(
     return { error: `Only ${avail} spots remaining in this slot` };
   }
 
-  if (isWaiting && !store.config.waitlistEnabled) {
+  if (isWaiting && !config.waitlistEnabled) {
     return { error: 'Waitlist is not enabled for this activity' };
   }
 
-  const slotBookings = await getBookings(opts.slotId);
+  const slotBookings = await a.getBookings(opts.slotId);
   const queuePosition = slotBookings.filter((booking) => booking.status === 'confirmed').length + 1;
   const waitlistPosition = isWaiting
     ? slotBookings.filter((booking) => booking.status === 'waiting').length + 1
@@ -76,84 +83,106 @@ export async function createBooking(
     notes: opts.notes,
   };
 
-  store.bookings.push(booking);
+  await a.createBooking(booking);
 
   if (!isWaiting) {
-    await updateSlot(opts.slotId, { bookedCount: slot.bookedCount + opts.partySize });
+    await a.updateSlot(opts.slotId, { bookedCount: slot.bookedCount + opts.partySize });
   }
 
-  recalculateSlotPositions(opts.slotId);
-  const updatedSlot = await getSlotById(opts.slotId);
+  // Recalculate positions for this slot
+  const updatedBookings = await a.getBookings(opts.slotId);
+  await recalculateSlotPositions(opts.slotId, a, updatedBookings);
+
+  const updatedSlot = await a.getSlotById(opts.slotId);
+  const finalBooking = await a.getBookingById(booking.id);
 
   return {
-    booking: getUpdatedBooking(booking.id),
-    slot: updatedSlot ?? slot,
+    booking: finalBooking || booking,
+    slot: updatedSlot || slot,
   };
 }
 
-export async function cancelBooking(id: string): Promise<{ booking: Booking; promoted?: Booking } | { error: string }> {
-  const bookingIndex = store.bookings.findIndex((booking) => booking.id === id);
-  if (bookingIndex === -1) {
+export async function cancelBooking(
+  id: string,
+  adapter?: StoreAdapter,
+): Promise<{ booking: Booking; promoted?: Booking } | { error: string }> {
+  const a = adapter || getAdapter();
+  
+  const booking = await a.getBookingById(id);
+  if (!booking) {
     return { error: 'Booking not found' };
   }
 
-  const existingBooking = store.bookings[bookingIndex];
-  const wasConfirmed = existingBooking.status === 'confirmed';
-  store.bookings[bookingIndex] = { ...existingBooking, status: 'cancelled' };
+  const wasConfirmed = booking.status === 'confirmed';
+  await a.updateBooking(id, { status: 'cancelled' });
 
   if (!wasConfirmed) {
-    recalculateSlotPositions(existingBooking.slotId);
-    return { booking: getUpdatedBooking(id) };
+    const slotBookings = await a.getBookings(booking.slotId);
+    await recalculateSlotPositions(booking.slotId, a, slotBookings);
+    const updatedBooking = await a.getBookingById(id);
+    return { booking: updatedBooking || booking };
   }
 
-  const slot = await getSlotById(existingBooking.slotId);
+  const slot = await a.getSlotById(booking.slotId);
   if (slot) {
-    await updateSlot(existingBooking.slotId, {
-      bookedCount: Math.max(0, slot.bookedCount - existingBooking.partySize),
+    await a.updateSlot(booking.slotId, {
+      bookedCount: Math.max(0, slot.bookedCount - booking.partySize),
     });
   }
 
-  recalculateSlotPositions(existingBooking.slotId);
+  const slotBookings = await a.getBookings(booking.slotId);
+  await recalculateSlotPositions(booking.slotId, a, slotBookings);
 
-  const refreshedSlot = await getSlotById(existingBooking.slotId);
-  const nextWaiting = getOrderedWaitingBookings(existingBooking.slotId)[0];
+  const refreshedSlot = await a.getSlotById(booking.slotId);
+  const nextWaiting = getOrderedWaitingBookings(slotBookings, booking.slotId)[0];
+  
   if (!nextWaiting || !refreshedSlot || availableSpots(refreshedSlot) < nextWaiting.partySize) {
-    return { booking: getUpdatedBooking(id) };
+    const updatedBooking = await a.getBookingById(id);
+    return { booking: updatedBooking || booking };
   }
 
-  const waitingIndex = store.bookings.findIndex((booking) => booking.id === nextWaiting.id);
-  store.bookings[waitingIndex] = {
-    ...store.bookings[waitingIndex],
+  await a.updateBooking(nextWaiting.id, {
     status: 'confirmed',
     waitlistPosition: undefined,
-  };
-
-  await updateSlot(existingBooking.slotId, {
-    bookedCount: refreshedSlot.bookedCount + nextWaiting.partySize,
   });
 
-  recalculateSlotPositions(existingBooking.slotId);
+  if (refreshedSlot) {
+    await a.updateSlot(booking.slotId, {
+      bookedCount: refreshedSlot.bookedCount + nextWaiting.partySize,
+    });
+  }
+
+  const finalSlotBookings = await a.getBookings(booking.slotId);
+  await recalculateSlotPositions(booking.slotId, a, finalSlotBookings);
+
+  const updatedCancelledBooking = await a.getBookingById(id);
+  const updatedPromotedBooking = await a.getBookingById(nextWaiting.id);
+
   return {
-    booking: getUpdatedBooking(id),
-    promoted: getUpdatedBooking(nextWaiting.id),
+    booking: updatedCancelledBooking || booking,
+    promoted: updatedPromotedBooking || nextWaiting,
   };
 }
 
-export async function removeBooking(id: string): Promise<boolean> {
-  const booking = store.bookings.find((candidate) => candidate.id === id);
+export async function removeBooking(id: string, adapter?: StoreAdapter): Promise<boolean> {
+  const a = adapter || getAdapter();
+  
+  const booking = await a.getBookingById(id);
   if (!booking) {
     return false;
   }
 
   if (booking.status === 'confirmed') {
-    const slot = await getSlotById(booking.slotId);
+    const slot = await a.getSlotById(booking.slotId);
     if (slot) {
-      await updateSlot(booking.slotId, { bookedCount: Math.max(0, slot.bookedCount - booking.partySize) });
+      await a.updateSlot(booking.slotId, {
+        bookedCount: Math.max(0, slot.bookedCount - booking.partySize),
+      });
     }
   }
 
-  const before = store.bookings.length;
-  store.bookings = store.bookings.filter((candidate) => candidate.id !== id);
-  recalculateSlotPositions(booking.slotId);
-  return store.bookings.length < before;
+  const slotBookings = await a.getBookings(booking.slotId);
+  await recalculateSlotPositions(booking.slotId, a, slotBookings);
+
+  return a.deleteBooking(id);
 }
