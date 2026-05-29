@@ -16,7 +16,21 @@ export default function BookPage() {
   async function loadSlots() {
     setLoadingSlots(true);
     const res = await fetch('/api/slots');
-    setSlots(await res.json());
+    const nextSlots: TimeSlot[] = await res.json();
+    setSlots(nextSlots);
+    setSelectedSlot((current) => {
+      if (current) {
+        const currentInNext = nextSlots.find((slot) => slot.id === current.id);
+        if (currentInNext && currentInNext.isOpen && currentInNext.capacity - currentInNext.bookedCount > 0) {
+          return currentInNext;
+        }
+      }
+
+      const firstAvailable = nextSlots.find(
+        (slot) => slot.isOpen && slot.capacity - slot.bookedCount > 0,
+      );
+      return firstAvailable ?? null;
+    });
     setLoadingSlots(false);
   }
 

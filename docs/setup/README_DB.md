@@ -12,20 +12,42 @@ createdb queueflow
 - Set your `.env.local`:
 
 ```
+QUEUEFLOW_STORE=postgres
 DATABASE_URL=postgres://username:password@localhost:5432/queueflow
 ```
 
-- Run the migration:
+- Run the migrations:
 
 ```bash
-psql "$DATABASE_URL" -f migrations/001_init.sql
+npm run db:migrate
 ```
+
+- Start the app:
+
+```bash
+npm run dev
+```
+
+- Optional fallback mode:
+
+```env
+QUEUEFLOW_STORE=memory
+```
+
+If `DATABASE_URL` is present and `QUEUEFLOW_STORE` is not set, QueueFlow automatically uses Postgres.
 
 ## 2. Vercel/Cloud
 
 - Use Vercel Postgres, Neon, or Supabase for managed Postgres.
-- Set the `DATABASE_URL` in Vercel project settings.
-- Run migrations using a CI/CD step or manually (see above).
+- Set `DATABASE_URL` in Vercel project settings.
+- Optionally set `QUEUEFLOW_STORE=postgres` explicitly for clarity.
+- Run migrations after provisioning the database:
+
+```bash
+npm run db:migrate
+```
+
+- Reuse the same schema and adapter path locally and in Vercel for a smooth transition.
 
 ## 3. Using the DB Client
 
@@ -40,5 +62,5 @@ const { rows } = await query('SELECT * FROM slots WHERE is_open = $1', [true]);
 
 ## 4. Next Steps
 
-- Implement a Postgres adapter for `StoreAdapter` (`src/lib/adapters/types.ts`) and wire it in `src/lib/adapters/index.ts`.
 - Add more migrations as your schema evolves.
+- Consider using separate `DATABASE_URL` values for local, preview, and production environments.

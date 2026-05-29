@@ -10,6 +10,7 @@ This document covers production deployment for QueueFlow and release checklists.
 ## Required environment variables
 
 - `DATABASE_URL` (required for Postgres-backed mode)
+- `QUEUEFLOW_STORE=postgres` (recommended for explicit DB-backed mode)
 - `NODE_ENV=production` (set by most hosts automatically)
 
 ## Pre-deploy checklist
@@ -17,19 +18,19 @@ This document covers production deployment for QueueFlow and release checklists.
 - [ ] `npm install` completes cleanly
 - [ ] `npm run build` succeeds
 - [ ] `npm test` succeeds (build + lint + smoke)
-- [ ] `migrations/001_init.sql` has been applied to target DB
+- [ ] `npm run db:migrate` has been applied to target DB
 - [ ] Core routes load (`/book`, `/my-spot`, `/admin`)
 - [ ] Booking + cancel + waitlist promotion flow verified
 
 ## Vercel deployment flow
 
 1. Connect GitHub repository in Vercel.
-2. Set `DATABASE_URL` in Vercel project settings.
+2. Set `DATABASE_URL` and `QUEUEFLOW_STORE=postgres` in Vercel project settings.
 3. Trigger deployment from `main` branch.
 4. Apply migrations against production DB:
 
 ```bash
-psql "$DATABASE_URL" -f migrations/001_init.sql
+npm run db:migrate
 ```
 
 5. Run smoke tests on deployed URL.
@@ -38,7 +39,7 @@ psql "$DATABASE_URL" -f migrations/001_init.sql
 
 - [ ] `GET /api/slots` returns data
 - [ ] New booking can be created with `POST /api/bookings`
-- [ ] Booking lookup works via `/api/waitlist?code=...`
+- [ ] Booking lookup works via `/api/waitlist?phoneNumber=...`
 - [ ] Admin slot create/toggle/delete works
 
 ## Rollback plan

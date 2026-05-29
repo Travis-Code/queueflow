@@ -2,6 +2,32 @@ import type { Booking, TimeSlot, ActivityConfig } from '@/types';
 import type { StoreAdapter } from './types';
 import { store } from '../services/state';
 
+const DEFAULT_SLOT_TIMES = ['9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'];
+
+function defaultSlotId(date: string, time: string): string {
+  return `slot:${date}:${time.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
+function ensureDefaultSlots(): void {
+  if (store.slots.length > 0) {
+    return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const capacity = store.config.defaultCapacity;
+  const durationMinutes = store.config.defaultDurationMinutes;
+
+  store.slots = DEFAULT_SLOT_TIMES.map((time) => ({
+    id: defaultSlotId(today, time),
+    time,
+    date: today,
+    capacity,
+    bookedCount: 0,
+    isOpen: true,
+    durationMinutes,
+  }));
+}
+
 /**
  * InMemoryAdapter: Reference implementation using global store
  * Perfect for development and testing without a database.
@@ -9,6 +35,7 @@ import { store } from '../services/state';
 export class InMemoryAdapter implements StoreAdapter {
   // ===== SLOTS =====
   async getSlots(date?: string): Promise<TimeSlot[]> {
+    ensureDefaultSlots();
     return date ? store.slots.filter((slot) => slot.date === date) : store.slots;
   }
 

@@ -36,13 +36,14 @@ createdb queueflow
 3. Add `.env.local` in repo root:
 
 ```env
+QUEUEFLOW_STORE=postgres
 DATABASE_URL=postgres://username:password@localhost:5432/queueflow
 ```
 
-4. Run migration:
+4. Run migrations:
 
 ```bash
-psql "$DATABASE_URL" -f migrations/001_init.sql
+npm run db:migrate
 ```
 
 5. Start app:
@@ -82,6 +83,7 @@ The smoke script starts a temporary dev server on port `3000` by default.
 ### Postgres connection errors
 
 - Verify `DATABASE_URL` credentials.
+- Verify `QUEUEFLOW_STORE=postgres` if you want to force DB-backed mode.
 - Confirm Postgres is running and reachable.
 - Re-run migration if tables are missing.
 

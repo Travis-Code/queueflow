@@ -7,10 +7,11 @@ LOG_FILE="/tmp/queueflow-test-dev.log"
 BOOKING_FILE="/tmp/queueflow-test-booking.json"
 SLOTS_FILE="/tmp/queueflow-test-slots.json"
 SMOKE_PORT="${SMOKE_PORT:-3000}"
+SMOKE_STORE="${SMOKE_STORE:-memory}"
 
 cd "$ROOT_DIR"
 
-npm run dev -- --port "$SMOKE_PORT" > "$LOG_FILE" 2>&1 &
+QUEUEFLOW_STORE="$SMOKE_STORE" npm run dev -- --port "$SMOKE_PORT" > "$LOG_FILE" 2>&1 &
 DEV_PID=$!
 
 cleanup() {
@@ -39,8 +40,23 @@ fi
 SLOT_ID="$(node -e "const fs=require('fs'); const slots=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); process.stdout.write(slots[0]?.id || '');" "$SLOTS_FILE")"
 
 if [[ -z "$SLOT_ID" ]]; then
-  echo "Smoke test failed: no slot ID returned from /api/slots."
-  exit 1
+  TODAY="$(date +%F)"
+  CREATE_STATUS="$(curl -s -o /tmp/queueflow-test-slot.json -w "%{http_code}" -X POST "http://localhost:${SMOKE_PORT}/api/slots" \
+    -H 'Content-Type: application/json' \
+    -d "{\"time\":\"9:00 AM\",\"date\":\"$TODAY\",\"capacity\":6}")"
+
+  if [[ "$CREATE_STATUS" != "201" ]]; then
+    echo "Smoke test failed: unable to create a slot for testing."
+    cat /tmp/queueflow-test-slot.json
+    exit 1
+  fi
+
+  SLOT_ID="$(node -e "const fs=require('fs'); const payload=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); process.stdout.write(payload.id || '');" /tmp/queueflow-test-slot.json)"
+
+  if [[ -z "$SLOT_ID" ]]; then
+    echo "Smoke test failed: no slot ID returned after slot creation."
+    exit 1
+  fi
 fi
 
 HTTP_STATUS="$(curl -s -o "$BOOKING_FILE" -w "%{http_code}" -X POST "http://localhost:${SMOKE_PORT}/api/bookings" \
