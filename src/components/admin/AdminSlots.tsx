@@ -21,6 +21,9 @@ export function AdminSlots() {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [newTime, setNewTime] = useState('');
+  const [newDate, setNewDate] = useState('');
+  const [newCapacity, setNewCapacity] = useState('6');
+  const [addError, setAddError] = useState('');
   const today = new Date().toISOString().split('T')[0];
 
   // Loads all slots from the API
@@ -32,16 +35,35 @@ export function AdminSlots() {
   }
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { setNewDate(today); }, [today]);
 
-  // Adds a new slot for today
+  // Adds a new slot with custom date/time/capacity
   async function addSlot() {
-    if (!newTime) return;
+    const capacity = Number.parseInt(newCapacity, 10);
+    if (!newTime.trim()) {
+      setAddError('Time is required.');
+      return;
+    }
+    if (!newDate) {
+      setAddError('Date is required.');
+      return;
+    }
+    if (!Number.isFinite(capacity) || capacity < 1) {
+      setAddError('Party size must be at least 1.');
+      return;
+    }
+
+    setAddError('');
     await fetch('/api/slots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ time: newTime, date: today }),
+      body: JSON.stringify({ time: newTime.trim(), date: newDate, capacity }),
     });
-    setNewTime(''); setAdding(false); load();
+    setNewTime('');
+    setNewDate(today);
+    setNewCapacity('6');
+    setAdding(false);
+    load();
   }
 
   // Toggles a slot open or closed
@@ -75,15 +97,35 @@ export function AdminSlots() {
 
       {/* Add slot form */}
       {adding && (
-        <div className="flex gap-2 mb-4">
-          <input
-            value={newTime}
-            onChange={e => setNewTime(e.target.value)}
-            placeholder="e.g. 2:00 PM"
-            className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
-          <button onClick={addSlot} className="px-3 py-2 rounded-lg bg-teal-600 text-white text-sm hover:bg-teal-700">Save</button>
-          <button onClick={() => setAdding(false)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-50">Cancel</button>
+        <div className="mb-4 space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input
+              value={newDate}
+              onChange={e => setNewDate(e.target.value)}
+              type="date"
+              min={today}
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            <input
+              value={newTime}
+              onChange={e => setNewTime(e.target.value)}
+              placeholder="e.g. 2:00 PM"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            <input
+              value={newCapacity}
+              onChange={e => setNewCapacity(e.target.value)}
+              type="number"
+              min={1}
+              placeholder="Party size"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+          {addError && <p className="text-xs text-red-600">{addError}</p>}
+          <div className="flex gap-2">
+            <button onClick={addSlot} className="px-3 py-2 rounded-lg bg-teal-600 text-white text-sm hover:bg-teal-700">Save</button>
+            <button onClick={() => { setAdding(false); setAddError(''); }} className="px-3 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-50">Cancel</button>
+          </div>
         </div>
       )}
 
@@ -100,6 +142,7 @@ export function AdminSlots() {
               <div key={slot.id} className="bg-white rounded-lg border border-gray-100 p-3 flex items-center gap-3">
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-800">{slot.time}</div>
+                  <div className="text-xs text-gray-500">{slot.date}</div>
                   <div className="text-xs text-gray-500 mb-1.5">{slot.bookedCount}/{slot.capacity} booked</div>
                   {/* Progress bar for slot fill level */}
                   <div className="h-1 bg-gray-100 rounded-full overflow-hidden w-24">
