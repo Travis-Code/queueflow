@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "psql \"$DATABASE_URL\" -f migrations/001_init.sql && psql \"$DATABASE_URL\" -f migrations/002_postgres_support.sql",
+    "db:peek": "node scripts/db-peek.cjs",
     "test": "npm run test:all",
     "test:build": "npm run build",
     "test:lint": "npm run lint",
