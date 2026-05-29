@@ -9,6 +9,8 @@
     "lint": "next lint",
     "db:migrate": "psql \"$DATABASE_URL\" -f migrations/001_init.sql && psql \"$DATABASE_URL\" -f migrations/002_postgres_support.sql",
     "db:peek": "node scripts/db-peek.cjs",
+    "api:bookings:pretty": "curl -s 'http://localhost:3000/api/bookings?stats=true' | node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.stringify(JSON.parse(d),null,2));}catch{console.log(d);process.exitCode=1;}});\"",
+    "api:slots:pretty": "curl -s 'http://localhost:3000/api/slots' | node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.stringify(JSON.parse(d),null,2));}catch{console.log(d);process.exitCode=1;}});\"",
     "test": "npm run test:all",
     "test:build": "npm run build",
     "test:lint": "npm run lint",

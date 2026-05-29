@@ -1,0 +1,26 @@
+{
+  "sqltools.useNodeRuntime": true,
+  "sqltools.connections": [
+    {
+      "name": "QueueFlow Local Postgres",
+      "driver": "PostgreSQL",
+      "server": "localhost",
+      "port": 5432,
+      "database": "queueflow",
+      "username": "boom",
+      "password": "",
+      "previewLimit": 200
+    }
+  ],
+  "postgresql.connections": [
+    {
+      "name": "QueueFlow Local Postgres",
+      "host": "localhost",
+      "port": 5432,
+      "database": "queueflow",
+      "username": "boom",
+      "password": "",
+      "sslmode": "disable"
+    }
+  ]
+}
