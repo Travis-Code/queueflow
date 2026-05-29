@@ -174,6 +174,33 @@ To use Postgres fully, add a `PostgresAdapter` implementing `StoreAdapter` and s
 2. Expose it in `GET /api/config` (add this route as needed)
 3. Conditionally render UI based on the config in page components
 
+## Future plans
+
+- Add production deployment on Vercel with managed Postgres
+- Add preview deployments for pull requests
+- Add admin authentication before public release
+- Add observability (error tracking + API monitoring)
+
+### Planned Vercel deployment steps
+
+1. Create a managed Postgres instance (Neon, Supabase, or Vercel Postgres).
+2. Run migrations against that database:
+
+```bash
+DATABASE_URL='postgres://<user>:<pass>@<host>/<db>?sslmode=require' npm run db:migrate
+```
+
+3. In Vercel, import this GitHub repository and set environment variables:
+  - `DATABASE_URL`
+  - `QUEUEFLOW_STORE=postgres`
+4. Deploy from `main`.
+5. Verify production endpoints:
+  - `GET /api/slots`
+  - `GET /api/bookings?stats=true`
+6. Run smoke checks on the deployed URL.
+
+For detailed production guidance, see `docs/setup/DEPLOYMENT.md`.
+
 ## API reference
 
 | Method | Path | Description |
