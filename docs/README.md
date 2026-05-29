@@ -32,3 +32,17 @@ npx -y @mermaid-js/mermaid-cli -i docs/diagrams/src/booking-flow.mmd -o docs/dia
 npx -y @mermaid-js/mermaid-cli -i docs/diagrams/src/admin-flow.mmd -o docs/diagrams/admin-flow.png
 npx -y @mermaid-js/mermaid-cli -i docs/diagrams/src/waitlist-promotion-flow.mmd -o docs/diagrams/waitlist-promotion-flow.png
 ```
+
+## Useful local inspection commands
+
+Run these from repo root while dev server is running:
+
+```bash
+npm run db:peek
+npm run api:bookings:pretty
+npm run api:slots:pretty
+```
+
+- `db:peek` prints table names and sample rows from local Postgres.
+- `api:bookings:pretty` prints readable bookings + stats JSON.
+- `api:slots:pretty` prints readable slots JSON.

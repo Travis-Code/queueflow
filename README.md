@@ -108,6 +108,29 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) — redirects to `/book`.
 
+## View live data (human-readable)
+
+Use these commands while `npm run dev` is running:
+
+```bash
+npm run db:peek
+npm run api:bookings:pretty
+npm run api:slots:pretty
+```
+
+- `db:peek` prints Postgres table summaries (`slots`, `bookings`, `activity_config`)
+- `api:bookings:pretty` pretty-prints `GET /api/bookings?stats=true`
+- `api:slots:pretty` pretty-prints `GET /api/slots`
+
+## View DB in VS Code
+
+Workspace settings include local Postgres connection defaults in `.vscode/settings.json`.
+
+1. Install recommended extensions from `.vscode/extensions.json`
+2. Run `SQLTools: Show Connections`
+3. Open `QueueFlow Local Postgres`
+4. Browse `public` tables and use **Show Table Records**
+
 ## Project structure
 
 ```

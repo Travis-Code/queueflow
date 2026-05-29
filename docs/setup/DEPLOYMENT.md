@@ -42,6 +42,13 @@ npm run db:migrate
 - [ ] Booking lookup works via `/api/waitlist?phoneNumber=...`
 - [ ] Admin slot create/toggle/delete works
 
+Optional readable checks against a running deployment or local instance:
+
+```bash
+npm run api:bookings:pretty
+npm run api:slots:pretty
+```
+
 ## Rollback plan
 
 If a release causes issues:

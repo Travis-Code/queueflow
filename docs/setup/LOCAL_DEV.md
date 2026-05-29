@@ -73,6 +73,26 @@ npm run test:smoke
 
 The smoke script starts a temporary dev server on port `3000` by default.
 
+## 5) View local data in readable format
+
+With `npm run dev` running, use:
+
+```bash
+npm run db:peek
+npm run api:bookings:pretty
+npm run api:slots:pretty
+```
+
+- `db:peek` shows Postgres tables and sample rows.
+- `api:bookings:pretty` shows formatted bookings + stats JSON.
+- `api:slots:pretty` shows formatted slots JSON.
+
+For table/grid browsing in VS Code:
+
+1. Install recommended extensions from `.vscode/extensions.json`.
+2. Open `SQLTools: Show Connections`.
+3. Select `QueueFlow Local Postgres` and open table records.
+
 ## Troubleshooting
 
 ### `Slot not found` or booking failures

@@ -36,6 +36,21 @@ QUEUEFLOW_STORE=memory
 
 If `DATABASE_URL` is present and `QUEUEFLOW_STORE` is not set, QueueFlow automatically uses Postgres.
 
+## 1.1 Inspecting local data
+
+After the app is running, use these commands from repo root:
+
+```bash
+npm run db:peek
+npm run api:bookings:pretty
+npm run api:slots:pretty
+```
+
+- `db:peek` prints table structure + sample rows.
+- `api:bookings:pretty` and `api:slots:pretty` format API responses for quick checks.
+
+In VS Code, install recommended extensions from `.vscode/extensions.json`, then use `SQLTools: Show Connections` and pick `QueueFlow Local Postgres`.
+
 ## 2. Vercel/Cloud
 
 - Use Vercel Postgres, Neon, or Supabase for managed Postgres.
